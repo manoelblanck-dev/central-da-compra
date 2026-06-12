@@ -221,10 +221,35 @@ function Metrica({ rotulo, valor }) {
 }
 
 function FormProduto({ form, setForm, salvar, fechar, salvando, erro }) {
+  const [enviando, setEnviando] = useState(false);
+  const [erroUpload, setErroUpload] = useState("");
+
   const set = (campo) => (e) => {
     const v = e.target.type === "checkbox" ? e.target.checked : e.target.value;
     setForm((f) => ({ ...f, [campo]: v }));
   };
+
+  async function enviarImagem(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setErroUpload("");
+    setEnviando(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok) {
+        setErroUpload(data.erro || "Falha ao enviar a imagem.");
+      } else {
+        setForm((f) => ({ ...f, imagem_url: data.url }));
+      }
+    } catch {
+      setErroUpload("Erro de conexão ao enviar a imagem.");
+    } finally {
+      setEnviando(false);
+    }
+  }
 
   const campo =
     "w-full rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow focus:ring-2 focus:ring-cc-yellow/30";
@@ -260,12 +285,32 @@ function FormProduto({ form, setForm, salvar, fechar, salvando, erro }) {
           </div>
 
           <div>
-            <label className={rotulo}>URL da imagem</label>
+            <label className={rotulo}>Imagem do produto</label>
+            {form.imagem_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={form.imagem_url}
+                alt="Pré-visualização"
+                className="mb-2 h-28 w-28 rounded-xl border border-cc-line object-cover"
+              />
+            ) : null}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={enviarImagem}
+              className="block w-full text-sm text-cc-muted file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-cc-yellow file:px-4 file:py-2 file:text-sm file:font-semibold file:text-cc-ink hover:file:bg-cc-yellow-dark"
+            />
+            {enviando ? (
+              <p className="mt-1 text-xs text-cc-muted">Enviando imagem...</p>
+            ) : null}
+            {erroUpload ? (
+              <p className="mt-1 text-xs text-red-600">{erroUpload}</p>
+            ) : null}
             <input
               value={form.imagem_url}
               onChange={set("imagem_url")}
-              className={campo}
-              placeholder="https://..."
+              className={`${campo} mt-2`}
+              placeholder="ou cole uma URL de imagem aqui"
             />
           </div>
 
