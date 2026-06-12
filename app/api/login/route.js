@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
+  let usuario = "";
   let senha = "";
   try {
     const body = await request.json();
+    usuario = body?.usuario || "";
     senha = body?.senha || "";
   } catch {
+    usuario = "";
     senha = "";
   }
 
@@ -16,7 +19,11 @@ export async function POST(request) {
     );
   }
 
-  if (senha && senha === process.env.ADMIN_PASSWORD) {
+  // Usuário esperado: vem da variável ADMIN_USER. Se ela não estiver
+  // configurada, o usuário padrão é "admin" (assim você nunca fica trancado).
+  const usuarioEsperado = process.env.ADMIN_USER || "admin";
+
+  if (usuario === usuarioEsperado && senha === process.env.ADMIN_PASSWORD) {
     const res = NextResponse.json({ ok: true });
     res.cookies.set("cc_admin", process.env.ADMIN_PASSWORD, {
       httpOnly: true,
@@ -28,5 +35,8 @@ export async function POST(request) {
     return res;
   }
 
-  return NextResponse.json({ ok: false, erro: "Senha incorreta." }, { status: 401 });
+  return NextResponse.json(
+    { ok: false, erro: "Usuário ou senha incorretos." },
+    { status: 401 }
+  );
 }

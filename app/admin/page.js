@@ -233,19 +233,74 @@ function FormProduto({ form, setForm, salvar, fechar, salvando, erro }) {
     const file = e.target.files?.[0];
     if (!file) return;
     setErroUpload("");
+
+    if (!file.type || !file.type.startsWith("image/")) {
+      setErroUpload("Selecione um arquivo de imagem (JPG, PNG, WEBP...).");
+      return;
+    }
+
     setEnviando(true);
     try {
+      // Reduz a imagem no próprio navegador antes de enviar. Isso evita o
+      // limite de tamanho do servidor e deixa o site mais rápido. Funciona
+      // com qualquer formato que o navegador saiba abrir (jpg, jpeg, png, webp...).
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error("leitura"));
+        reader.readAsDataURL(file);
+      });
+
+      const img = await new Promise((resolve, reject) => {
+        const i = new Image();
+        i.onload = () => resolve(i);
+        i.onerror = () => reject(new Error("formato"));
+        i.src = dataUrl;
+      });
+
+      const MAX = 1200; // maior lado da imagem em pixels
+      let { width, height } = img;
+      if (width > MAX || height > MAX) {
+        if (width >= height) {
+          height = Math.round((height * MAX) / width);
+          width = MAX;
+        } else {
+          width = Math.round((width * MAX) / height);
+          height = MAX;
+        }
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+
+      const ehPng = file.type === "image/png";
+      const tipoSaida = ehPng ? "image/png" : "image/jpeg";
+      const ext = ehPng ? "png" : "jpg";
+      const blob = await new Promise((resolve) =>
+        canvas.toBlob(resolve, tipoSaida, 0.85)
+      );
+      if (!blob) throw new Error("conversao");
+
       const fd = new FormData();
-      fd.append("file", file);
+      fd.append("file", blob, `produto.${ext}`);
       const res = await fetch("/api/upload", { method: "POST", body: fd });
-      const data = await res.json();
+
+      let data = {};
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
+
       if (!res.ok) {
-        setErroUpload(data.erro || "Falha ao enviar a imagem.");
+        setErroUpload(data.erro || `Falha ao enviar a imagem (erro ${res.status}).`);
       } else {
         setForm((f) => ({ ...f, imagem_url: data.url }));
       }
-    } catch {
-      setErroUpload("Erro de conexão ao enviar a imagem.");
+    } catch (err) {
+      setErroUpload("Não consegui processar essa imagem. Tente outra (JPG ou PNG).");
     } finally {
       setEnviando(false);
     }

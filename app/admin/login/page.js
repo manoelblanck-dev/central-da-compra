@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
@@ -17,7 +18,7 @@ export default function LoginPage() {
       const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ senha }),
+        body: JSON.stringify({ usuario, senha }),
       });
       const data = await res.json();
       if (res.ok && data.ok) {
@@ -44,17 +45,30 @@ export default function LoginPage() {
         </div>
         <h1 className="text-lg font-semibold text-cc-ink">Entrar no painel</h1>
         <p className="mt-1 text-sm text-cc-muted">
-          Digite a senha de administrador para gerenciar os produtos.
+          Digite seu usuário e senha para gerenciar os produtos.
         </p>
 
         <form onSubmit={entrar} className="mt-6 space-y-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-cc-ink">Usuário</label>
+            <input
+              type="text"
+              value={usuario}
+              onChange={(e) => setUsuario(e.target.value)}
+              autoFocus
+              autoComplete="username"
+              className="w-full rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow focus:ring-2 focus:ring-cc-yellow/30"
+              placeholder="seu usuário"
+            />
+          </div>
+
           <div>
             <label className="mb-1 block text-sm font-medium text-cc-ink">Senha</label>
             <input
               type="password"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
-              autoFocus
+              autoComplete="current-password"
               className="w-full rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow focus:ring-2 focus:ring-cc-yellow/30"
               placeholder="••••••••"
             />
