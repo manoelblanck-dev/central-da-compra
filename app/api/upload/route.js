@@ -25,6 +25,21 @@ export async function POST(request) {
     return NextResponse.json({ erro: "Nenhum arquivo enviado." }, { status: 400 });
   }
 
+  // Segurança: aceitar apenas imagens, e limitar o tamanho (8 MB).
+  const tipo = file.type || "";
+  if (!tipo.startsWith("image/")) {
+    return NextResponse.json(
+      { erro: "Só é permitido enviar imagens." },
+      { status: 400 }
+    );
+  }
+  if (file.size && file.size > 8 * 1024 * 1024) {
+    return NextResponse.json(
+      { erro: "Imagem muito grande (máximo 8 MB)." },
+      { status: 400 }
+    );
+  }
+
   // Gera um nome único pro arquivo
   const ext = (file.name?.split(".").pop() || "jpg").toLowerCase();
   const nome = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;

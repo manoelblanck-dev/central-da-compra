@@ -1,16 +1,18 @@
 -- =============================================================
---  Central da Compra — Onda 3 (busca inteligente)
+--  Central da Compra — Busca inteligente (versão melhorada)
 --  Cole no Supabase: SQL Editor > New query > RUN
---  (precisa que o melhorias-onda2.sql já tenha sido rodado,
---   pois usa a extensão pg_trgm criada lá)
+--  Pode rodar quantas vezes quiser (idempotente).
 -- =============================================================
 
--- Garante a extensão (caso a Onda 2 não tenha rodado ainda)
+-- Extensões: trigramas (semelhança) + unaccent (ignorar acentos)
 create extension if not exists pg_trgm;
+create extension if not exists unaccent;
 
--- Função de busca que tolera erros de digitação.
--- Retorna produtos que combinam por texto OU por semelhança (trigramas),
--- ordenados pela relevância. lim/off servem para o "carregar mais".
+-- Função de busca:
+--  - ignora acentos e maiúsculas/minúsculas
+--  - acha por trecho (ilike) E por semelhança (tolera erro de digitação)
+--  - ordena pelos resultados mais parecidos
+--  - lim/off servem para o "carregar mais"
 create or replace function buscar_produtos(
   termo text,
   lim int default 12,
@@ -20,20 +22,22 @@ returns setof produtos
 language sql
 stable
 as $$
-  select *
-  from produtos
-  where termo is null
-     or termo = ''
-     or nome ilike '%' || termo || '%'
-     or coalesce(descricao, '') ilike '%' || termo || '%'
-     or similarity(nome, termo) > 0.2
-     or similarity(coalesce(descricao, ''), termo) > 0.2
+  with p as (
+    select unaccent(lower(coalesce(termo, ''))) as t
+  )
+  select prod.*
+  from produtos prod, p
+  where p.t = ''
+     or unaccent(lower(prod.nome)) ilike '%' || p.t || '%'
+     or unaccent(lower(coalesce(prod.descricao, ''))) ilike '%' || p.t || '%'
+     or similarity(unaccent(lower(prod.nome)), p.t) > 0.15
+     or word_similarity(p.t, unaccent(lower(prod.nome))) > 0.3
   order by
     greatest(
-      similarity(nome, termo),
-      similarity(coalesce(descricao, ''), termo)
+      similarity(unaccent(lower(prod.nome)), p.t),
+      word_similarity(p.t, unaccent(lower(prod.nome)))
     ) desc,
-    criado_em desc
+    prod.criado_em desc
   limit lim
   offset off;
 $$;

@@ -17,12 +17,12 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur">
       {/* Faixa da Copa */}
-      <div className="bg-br-green px-3 py-1.5 text-center text-[13px] font-semibold text-white">
+      <div className="bg-br-green px-3 py-1.5 text-center text-[11px] font-semibold text-white sm:text-[13px]">
         ⚽ Especial Copa do Mundo
-        <span className="mx-2 inline-block h-2 w-2 rounded-full bg-cc-yellow align-middle" />
-        Vai, Brasil!
-        <span className="mx-2 inline-block h-2 w-2 rounded-full bg-cc-yellow align-middle" />
-        ofertas da seleção toda semana
+        <span className="mx-2 hidden h-2 w-2 rounded-full bg-cc-yellow align-middle sm:inline-block" />
+        <span className="hidden sm:inline">Vai, Brasil! </span>
+        <span className="mx-2 hidden h-2 w-2 rounded-full bg-cc-yellow align-middle sm:inline-block" />
+        <span className="hidden sm:inline">ofertas da seleção toda semana</span>
       </div>
 
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 sm:gap-6">

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { CATEGORIAS, PLATAFORMAS, formatarPreco, nomeCategoria } from "@/lib/constantes";
+import { CATEGORIAS, PLATAFORMAS, formatarPreco, nomeCategoria, detectarPlataforma } from "@/lib/constantes";
 
 const PRODUTO_VAZIO = {
   nome: "",
@@ -22,6 +22,7 @@ export default function AdminPage() {
   const [produtos, setProdutos] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [form, setForm] = useState(null); // null = fechado; objeto = abrindo
+  const [lote, setLote] = useState(false); // modal de adicionar vários
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState("");
 
@@ -106,16 +107,22 @@ export default function AdminPage() {
           <h1 className="cc-mono text-3xl text-cc-ink">Painel</h1>
           <p className="text-sm text-cc-muted">Gerencie os produtos da loja</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={novo}
-            className="rounded-full bg-cc-yellow px-5 py-2.5 text-sm font-bold text-cc-ink transition hover:bg-cc-yellow-dark"
+            className="bg-cc-yellow px-5 py-2.5 text-sm font-bold text-cc-ink transition hover:bg-cc-yellow-dark"
           >
             + Novo produto
           </button>
           <button
+            onClick={() => { setErro(""); setLote(true); }}
+            className="border border-cc-line px-4 py-2.5 text-sm font-medium text-cc-ink transition hover:bg-cc-cream"
+          >
+            + Adicionar vários
+          </button>
+          <button
             onClick={sair}
-            className="rounded-full border border-cc-line px-4 py-2.5 text-sm font-medium text-cc-muted transition hover:text-cc-ink"
+            className="border border-cc-line px-4 py-2.5 text-sm font-medium text-cc-muted transition hover:text-cc-ink"
           >
             Sair
           </button>
@@ -130,7 +137,7 @@ export default function AdminPage() {
       </div>
 
       {/* tabela */}
-      <div className="mt-6 overflow-hidden rounded-2xl border border-cc-line bg-white">
+      <div className="mt-6 overflow-hidden border border-cc-line bg-white">
         {carregando ? (
           <p className="px-4 py-10 text-center text-sm text-cc-muted">Carregando...</p>
         ) : produtos.length === 0 ? (
@@ -207,13 +214,24 @@ export default function AdminPage() {
           erro={erro}
         />
       ) : null}
+
+      {/* modal de adicionar vários */}
+      {lote ? (
+        <FormLote
+          fechar={() => setLote(false)}
+          aoConcluir={() => {
+            setLote(false);
+            carregar();
+          }}
+        />
+      ) : null}
     </div>
   );
 }
 
 function Metrica({ rotulo, valor }) {
   return (
-    <div className="rounded-2xl border border-cc-line bg-white px-4 py-4">
+    <div className="border border-cc-line bg-white px-4 py-4">
       <p className="cc-mono text-3xl text-cc-ink">{valor}</p>
       <p className="text-xs text-cc-muted">{rotulo}</p>
     </div>
@@ -332,11 +350,18 @@ function FormProduto({ form, setForm, salvar, fechar, salvando, erro }) {
             <label className={rotulo}>Link de afiliado *</label>
             <input
               value={form.link_afiliado}
-              onChange={set("link_afiliado")}
+              onChange={(e) => {
+                const v = e.target.value;
+                const p = detectarPlataforma(v);
+                setForm((f) => ({ ...f, link_afiliado: v, plataforma: p || f.plataforma }));
+              }}
               className={campo}
               placeholder="https://shopee.com.br/..."
               required
             />
+            <p className="mt-1 text-xs text-cc-muted">
+              A plataforma é detectada automaticamente pelo link (dá pra ajustar abaixo).
+            </p>
           </div>
 
           <div>
@@ -430,6 +455,134 @@ function FormProduto({ form, setForm, salvar, fechar, salvando, erro }) {
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+function FormLote({ fechar, aoConcluir }) {
+  const [texto, setTexto] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState("");
+  const [resultado, setResultado] = useState(null);
+
+  function parseLinhas(txt) {
+    return txt
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .map((linha) => {
+        const [nome, preco, link, categoria, plataforma] = linha
+          .split("|")
+          .map((p) => p.trim());
+        return {
+          nome: nome || "",
+          preco: preco || "",
+          link_afiliado: link || "",
+          categoria: categoria || "outros",
+          plataforma: plataforma || detectarPlataforma(link) || "shopee",
+        };
+      });
+  }
+
+  const previa = parseLinhas(texto);
+  const validos = previa.filter(
+    (p) => p.nome && /^https:\/\//i.test(p.link_afiliado || "")
+  );
+
+  async function importar(e) {
+    e.preventDefault();
+    setErro("");
+    if (validos.length === 0) {
+      setErro("Nenhuma linha válida. Cada linha precisa de nome e link começando com https://");
+      return;
+    }
+    setEnviando(true);
+    try {
+      const res = await fetch("/api/produtos/lote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ produtos: validos }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErro(data.erro || "Erro ao importar.");
+      } else {
+        setResultado(data);
+        setTimeout(aoConcluir, 1300);
+      }
+    } catch {
+      setErro("Erro de conexão.");
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4">
+      <div className="my-8 w-full max-w-2xl border border-cc-line bg-white p-6 shadow-card">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="cc-mono text-2xl text-cc-ink">Adicionar vários produtos</h2>
+          <button onClick={fechar} className="text-cc-muted hover:text-cc-ink" aria-label="Fechar">
+            ✕
+          </button>
+        </div>
+
+        <div className="mb-4 border border-cc-line bg-cc-cream/60 p-3 text-xs text-cc-ink">
+          <p className="font-semibold">Um produto por linha, neste formato:</p>
+          <p className="mt-1 font-mono">Nome | preço | link | categoria | plataforma</p>
+          <p className="mt-2 text-cc-muted">
+            Só <b>nome</b> e <b>link</b> são obrigatórios. Preço, categoria e plataforma são
+            opcionais (a plataforma é detectada pelo link). Exemplo:
+          </p>
+          <p className="mt-1 font-mono text-cc-muted">
+            Fone TWS | 89.90 | https://shopee.com.br/abc | eletronicos
+          </p>
+        </div>
+
+        {resultado ? (
+          <div className="border border-br-green bg-[#F0FAF3] p-4 text-sm text-br-green">
+            ✅ {resultado.adicionados} produto(s) adicionado(s)
+            {resultado.ignorados ? ` · ${resultado.ignorados} ignorado(s)` : ""}.
+          </div>
+        ) : (
+          <form onSubmit={importar} className="space-y-3">
+            <textarea
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+              rows={9}
+              placeholder="Cole aqui suas linhas, uma por produto..."
+              className="w-full border border-cc-line p-3 font-mono text-xs outline-none focus:border-cc-yellow focus:ring-2 focus:ring-cc-yellow/30"
+            />
+            <p className="text-xs text-cc-muted">
+              {validos.length} produto(s) válido(s) detectado(s)
+              {previa.length - validos.length > 0
+                ? ` · ${previa.length - validos.length} linha(s) sem nome ou link válido`
+                : ""}
+            </p>
+
+            {erro ? (
+              <p className="bg-red-50 px-3 py-2 text-sm text-red-700">{erro}</p>
+            ) : null}
+
+            <div className="flex gap-2 pt-1">
+              <button
+                type="submit"
+                disabled={enviando || validos.length === 0}
+                className="flex-1 bg-cc-yellow px-4 py-2.5 text-sm font-bold text-cc-ink transition hover:bg-cc-yellow-dark disabled:opacity-60"
+              >
+                {enviando ? "Importando..." : `Importar ${validos.length} produto(s)`}
+              </button>
+              <button
+                type="button"
+                onClick={fechar}
+                className="border border-cc-line px-5 py-2.5 text-sm font-medium text-cc-muted hover:text-cc-ink"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );

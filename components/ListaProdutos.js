@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { sanitizarBusca } from "@/lib/constantes";
 import ProductGrid from "@/components/ProductGrid";
 
 // Busca a próxima página de produtos conforme o tipo da listagem.
@@ -15,10 +16,12 @@ async function buscarPagina(tipo, params, offset, porPagina) {
     });
     if (!error && data) return data;
     // Fallback: se a função de busca ainda não existir no banco, usa busca simples.
+    const seguro = sanitizarBusca(q);
+    if (!seguro) return [];
     const { data: d2 } = await supabase
       .from("produtos")
       .select("*")
-      .or(`nome.ilike.%${q}%,descricao.ilike.%${q}%`)
+      .or(`nome.ilike.%${seguro}%,descricao.ilike.%${seguro}%`)
       .order("criado_em", { ascending: false })
       .range(offset, offset + porPagina - 1);
     return d2 || [];

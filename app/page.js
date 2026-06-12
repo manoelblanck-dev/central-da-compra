@@ -30,10 +30,10 @@ export default async function Home() {
     <div className="mx-auto max-w-6xl px-4">
       {/* OFERTAS DA SEMANA — primeira coisa que o visitante vê */}
       <section className="mt-6">
-        <div className="flex items-center gap-4 border border-cc-line bg-cc-cream px-6 py-5">
-          <span className="text-3xl" aria-hidden>⚽</span>
+        <div className="flex items-center gap-3 border border-cc-line bg-cc-cream px-4 py-4 sm:gap-4 sm:px-6 sm:py-5">
+          <span className="text-2xl sm:text-3xl" aria-hidden>⚽</span>
           <div>
-            <h1 className="cc-mono text-3xl leading-tight text-cc-ink">
+            <h1 className="cc-mono text-2xl leading-tight text-cc-ink sm:text-3xl">
               Ofertas da <span className="text-br-green">Semana</span>
             </h1>
             <p className="mt-0.5 text-sm text-cc-muted">

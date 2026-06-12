@@ -70,15 +70,21 @@ export default async function ProdutoPage({ params }) {
         </Link>
       </nav>
 
-      <div className="grid gap-8 md:grid-cols-2">
-        {/* imagem */}
-        <div className="overflow-hidden border border-cc-line bg-cc-cream">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={produto.imagem_url || "https://placehold.co/800x800/FFF8EC/211C15?text=Produto"}
-            alt={produto.nome}
-            className="aspect-square w-full object-cover"
-          />
+      <div className="grid gap-6 md:grid-cols-2 md:items-start md:gap-10">
+        {/* imagem — fixa no desktop, sem distorção, independente da descrição */}
+        <div className="md:sticky md:top-28">
+          <div className="flex aspect-square w-full items-center justify-center overflow-hidden border border-cc-line bg-cc-cream">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={produto.imagem_url || "/logo.png"}
+              alt={produto.nome}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "/logo.png";
+              }}
+              className="h-full w-full object-contain"
+            />
+          </div>
         </div>
 
         {/* infos */}
@@ -88,10 +94,11 @@ export default async function ProdutoPage({ params }) {
             {produto.nome}
           </h1>
 
+          {/* preço */}
           <div className="mt-4">
             <div className="flex flex-wrap items-end gap-3">
               {preco ? (
-                <span className="cc-mono text-4xl leading-none text-cc-ink">{preco}</span>
+                <span className="cc-mono text-3xl leading-none text-cc-ink sm:text-4xl">{preco}</span>
               ) : (
                 <span className="text-lg text-cc-muted">Ver preço na loja</span>
               )}
@@ -108,18 +115,12 @@ export default async function ProdutoPage({ params }) {
             ) : null}
           </div>
 
-          {produto.descricao ? (
-            <p className="mt-5 whitespace-pre-line leading-relaxed text-cc-muted">
-              {produto.descricao}
-            </p>
-          ) : null}
-
-          {/* CTA de compra → vai para a rota de redirecionamento /ir/[id] */}
+          {/* CTA de compra — logo após o preço, sempre visível */}
           <a
             href={`/ir/${produto.id}`}
             target="_blank"
             rel="nofollow sponsored noopener noreferrer"
-            className="mt-7 inline-flex items-center justify-center gap-2 bg-cc-yellow px-7 py-3.5 text-base font-bold text-cc-ink shadow-card transition hover:bg-cc-yellow-dark"
+            className="mt-6 flex w-full items-center justify-center gap-2 bg-cc-yellow px-7 py-4 text-base font-bold text-cc-ink shadow-card transition hover:bg-cc-yellow-dark sm:w-auto sm:self-start"
           >
             Ver oferta e comprar →
           </a>
@@ -132,6 +133,16 @@ export default async function ProdutoPage({ params }) {
               : "Shopee"}{" "}
             para finalizar a compra com segurança.
           </p>
+
+          {/* descrição — abaixo do botão, pode ser longa sem atrapalhar */}
+          {produto.descricao ? (
+            <div className="mt-6 border-t border-cc-line pt-5">
+              <h2 className="mb-2 text-sm font-semibold text-cc-ink">Descrição</h2>
+              <p className="whitespace-pre-line leading-relaxed text-cc-muted">
+                {produto.descricao}
+              </p>
+            </div>
+          ) : null}
         </div>
       </div>
 

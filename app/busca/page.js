@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { sanitizarBusca } from "@/lib/constantes";
 import ListaProdutos from "@/components/ListaProdutos";
 
 export const dynamic = "force-dynamic";
@@ -14,10 +15,12 @@ async function buscar(q) {
   });
   if (!error && data) return data;
   // Fallback: busca simples se a função ainda não existir no banco
+  const seguro = sanitizarBusca(q);
+  if (!seguro) return [];
   const { data: d2 } = await supabase
     .from("produtos")
     .select("*")
-    .or(`nome.ilike.%${q}%,descricao.ilike.%${q}%`)
+    .or(`nome.ilike.%${seguro}%,descricao.ilike.%${seguro}%`)
     .order("criado_em", { ascending: false })
     .range(0, POR_PAGINA - 1);
   return d2 || [];
