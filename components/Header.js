@@ -20,9 +20,12 @@ export default function Header() {
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:gap-5">
         {/* Logo */}
         <Link href="/" className="flex shrink-0 items-center gap-2" aria-label="Central da Compra — início">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-cc-yellow text-cc-ink cc-mono text-xl">
-            CC
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.png"
+            alt="Central da Compra"
+            className="h-11 w-11 rounded-xl object-cover"
+          />
           <span className="hidden flex-col leading-none sm:flex">
             <span className="cc-mono text-lg text-cc-ink">Central da Compra</span>
             <span className="text-[11px] tracking-wide text-cc-muted">os melhores achados</span>
@@ -48,14 +51,6 @@ export default function Header() {
             </button>
           </div>
         </form>
-
-        {/* Admin */}
-        <Link
-          href="/admin"
-          className="hidden shrink-0 text-sm font-medium text-cc-muted transition hover:text-cc-ink sm:block"
-        >
-          Painel
-        </Link>
       </div>
 
       <CategoryBar />

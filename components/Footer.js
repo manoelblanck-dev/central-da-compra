@@ -8,9 +8,12 @@ export default function Footer() {
         <div className="flex flex-col gap-8 sm:flex-row sm:justify-between">
           <div className="max-w-sm">
             <div className="flex items-center gap-2">
-              <span className="grid h-9 w-9 place-items-center rounded-lg bg-cc-yellow text-cc-ink cc-mono">
-                CC
-              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo.png"
+                alt="Central da Compra"
+                className="h-9 w-9 rounded-lg object-cover"
+              />
               <span className="cc-mono text-lg">Central da Compra</span>
             </div>
             <p className="mt-3 text-sm text-cc-muted">
