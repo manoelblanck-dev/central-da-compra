@@ -45,7 +45,7 @@ export default async function ProdutoPage({ params }) {
 
       <div className="grid gap-8 md:grid-cols-2">
         {/* imagem */}
-        <div className="overflow-hidden rounded-2xl border border-cc-line bg-cc-cream">
+        <div className="overflow-hidden border border-cc-line bg-cc-cream">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={produto.imagem_url || "https://placehold.co/800x800/FFF8EC/211C15?text=Produto"}
@@ -61,14 +61,23 @@ export default async function ProdutoPage({ params }) {
             {produto.nome}
           </h1>
 
-          <div className="mt-4 flex items-baseline gap-3">
-            {preco ? (
-              <span className="cc-mono text-3xl text-cc-ink">{preco}</span>
-            ) : (
-              <span className="text-lg text-cc-muted">Ver preço na loja</span>
-            )}
-            {precoAntigo && temDesconto ? (
-              <span className="text-base text-cc-muted line-through">{precoAntigo}</span>
+          <div className="mt-4">
+            <div className="flex flex-wrap items-end gap-3">
+              {preco ? (
+                <span className="cc-mono text-4xl leading-none text-cc-ink">{preco}</span>
+              ) : (
+                <span className="text-lg text-cc-muted">Ver preço na loja</span>
+              )}
+              {precoAntigo && temDesconto ? (
+                <span className="text-lg font-semibold leading-none text-[#C0392B] line-through decoration-2">
+                  {precoAntigo}
+                </span>
+              ) : null}
+            </div>
+            {temDesconto ? (
+              <span className="mt-2 inline-block bg-[#E8F6EC] px-2.5 py-1 text-xs font-bold text-br-green">
+                Você economiza {formatarPreco(Number(produto.preco_antigo) - Number(produto.preco))}
+              </span>
             ) : null}
           </div>
 
@@ -83,7 +92,7 @@ export default async function ProdutoPage({ params }) {
             href={`/ir/${produto.id}`}
             target="_blank"
             rel="nofollow sponsored noopener noreferrer"
-            className="mt-7 inline-flex items-center justify-center gap-2 rounded-full bg-cc-yellow px-7 py-3.5 text-base font-bold text-cc-ink shadow-card transition hover:bg-cc-yellow-dark"
+            className="mt-7 inline-flex items-center justify-center gap-2 bg-cc-yellow px-7 py-3.5 text-base font-bold text-cc-ink shadow-card transition hover:bg-cc-yellow-dark"
           >
             Ver oferta e comprar →
           </a>

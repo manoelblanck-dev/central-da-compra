@@ -23,13 +23,14 @@ export async function POST(request) {
     return NextResponse.json({ erro: "Nenhum arquivo enviado." }, { status: 400 });
   }
 
+  // Gera um nome único pro arquivo
   const ext = (file.name?.split(".").pop() || "jpg").toLowerCase();
   const nome = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
   const bytes = Buffer.from(await file.arrayBuffer());
 
   const { error } = await supabaseAdmin.storage
-    .from("produtos")
+    .from("produtos") // nome do bucket criado no Supabase
     .upload(nome, bytes, {
       contentType: file.type || "image/jpeg",
       upsert: false,

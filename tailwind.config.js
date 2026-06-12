@@ -20,6 +20,12 @@ module.exports = {
         shopee: "#EE4D2D",
         mercadolivre: "#2D3277",
         tiktok: "#111111",
+        // Cores da Seleção / Copa
+        br: {
+          green: "#009739",
+          blue: "#002776",
+          yellow: "#FEDD00",
+        },
       },
       fontFamily: {
         serif: ["var(--font-fraunces)", "Georgia", "serif"],

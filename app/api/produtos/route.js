@@ -7,6 +7,16 @@ function autorizado(request) {
 }
 
 // Limpa o corpo recebido, mantendo só os campos válidos.
+// Valida o link de afiliado: precisa ser uma URL https:// válida.
+function linkValido(url) {
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 function montarProduto(body) {
   const numero = (v) => (v === "" || v === null || v === undefined ? null : Number(v));
   return {
@@ -33,6 +43,13 @@ export async function POST(request) {
   if (!produto.nome || !produto.link_afiliado) {
     return NextResponse.json(
       { erro: "Nome e link de afiliado são obrigatórios." },
+      { status: 400 }
+    );
+  }
+
+  if (!linkValido(produto.link_afiliado)) {
+    return NextResponse.json(
+      { erro: "O link de afiliado precisa ser uma URL válida começando com https://" },
       { status: 400 }
     );
   }

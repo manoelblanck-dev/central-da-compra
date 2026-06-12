@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import CategoryBar from "@/components/CategoryBar";
 
 export default function Header() {
   const router = useRouter();
@@ -16,25 +15,33 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-cc-line bg-white/95 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:gap-5">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur">
+      {/* Faixa da Copa */}
+      <div className="bg-br-green px-3 py-1.5 text-center text-[13px] font-semibold text-white">
+        ⚽ Especial Copa do Mundo
+        <span className="mx-2 inline-block h-2 w-2 rounded-full bg-cc-yellow align-middle" />
+        Vai, Brasil!
+        <span className="mx-2 inline-block h-2 w-2 rounded-full bg-cc-yellow align-middle" />
+        ofertas da seleção toda semana
+      </div>
+
+      <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 sm:gap-6">
         {/* Logo */}
-        <Link href="/" className="flex shrink-0 items-center gap-2" aria-label="Central da Compra — início">
+        <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="Central da Compra — início">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.png"
             alt="Central da Compra"
-            className="h-11 w-11 rounded-xl object-cover"
+            className="h-11 w-11 object-cover"
           />
-          <span className="hidden flex-col leading-none sm:flex">
-            <span className="cc-mono text-lg text-cc-ink">Central da Compra</span>
-            <span className="text-[11px] tracking-wide text-cc-muted">os melhores achados</span>
+          <span className="hidden cc-mono text-xl text-cc-ink sm:block">
+            Central da Compra
           </span>
         </Link>
 
-        {/* Busca */}
+        {/* Busca (única parte arredondada do site) */}
         <form onSubmit={buscar} className="flex flex-1 items-center" role="search">
-          <div className="flex w-full items-center rounded-full border border-cc-line bg-white pl-4 focus-within:border-cc-yellow focus-within:ring-2 focus-within:ring-cc-yellow/30">
+          <div className="flex w-full max-w-xl items-center rounded-full border border-cc-line bg-white pl-4 focus-within:border-cc-yellow focus-within:ring-2 focus-within:ring-cc-yellow/30">
             <input
               type="search"
               value={termo}
@@ -53,7 +60,12 @@ export default function Header() {
         </form>
       </div>
 
-      <CategoryBar />
+      {/* Listra tricolor da Seleção */}
+      <div className="flex h-[5px]">
+        <span className="flex-1 bg-br-green" />
+        <span className="flex-1 bg-cc-yellow" />
+        <span className="flex-1 bg-br-blue" />
+      </div>
     </header>
   );
 }

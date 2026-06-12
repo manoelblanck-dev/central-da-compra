@@ -12,13 +12,13 @@ export default function Footer() {
               <img
                 src="/logo.png"
                 alt="Central da Compra"
-                className="h-9 w-9 rounded-lg object-cover"
+                className="h-9 w-9 object-cover"
               />
               <span className="cc-mono text-lg">Central da Compra</span>
             </div>
             <p className="mt-3 text-sm text-cc-muted">
               Selecionamos as melhores ofertas da Shopee, Mercado Livre e TikTok Shop
-              para você comprar com tranquilidade.
+              para você comprar com tranquilidade. ⚽ Vai, Brasil!
             </p>
           </div>
 
