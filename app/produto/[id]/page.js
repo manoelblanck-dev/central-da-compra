@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { formatarPreco, nomeCategoria } from "@/lib/constantes";
 import PlatformBadge from "@/components/PlatformBadge";
 import ProductGrid from "@/components/ProductGrid";
+import ImagemProduto from "@/components/ImagemProduto";
 
 export const dynamic = "force-dynamic";
 
@@ -74,14 +75,9 @@ export default async function ProdutoPage({ params }) {
         {/* imagem — fixa no desktop, sem distorção, independente da descrição */}
         <div className="md:sticky md:top-28">
           <div className="flex aspect-square w-full items-center justify-center overflow-hidden border border-cc-line bg-cc-cream">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={produto.imagem_url || "/logo.png"}
+            <ImagemProduto
+              src={produto.imagem_url}
               alt={produto.nome}
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = "/logo.png";
-              }}
               className="h-full w-full object-contain"
             />
           </div>
