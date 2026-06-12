@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { tokenSessao } from "@/lib/auth";
 
-function autorizado(request) {
+async function autorizado(request) {
   const cookie = request.cookies.get("cc_admin")?.value;
-  return !!process.env.ADMIN_PASSWORD && cookie === process.env.ADMIN_PASSWORD;
+  if (!cookie || !process.env.ADMIN_PASSWORD) return false;
+  return cookie === (await tokenSessao());
 }
 
 export async function POST(request) {
-  if (!autorizado(request)) {
+  if (!(await autorizado(request))) {
     return NextResponse.json({ erro: "Não autorizado." }, { status: 401 });
   }
 
