@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import ProductGrid from "@/components/ProductGrid";
+import ListaProdutos from "@/components/ListaProdutos";
 
 export const dynamic = "force-dynamic";
 
@@ -7,18 +7,20 @@ export const metadata = {
   title: "Ofertas da Semana — Central da Compra",
 };
 
-async function getOfertas() {
+const POR_PAGINA = 12;
+
+async function getInicial() {
   const { data } = await supabase
     .from("produtos")
     .select("*")
     .eq("destaque", true)
     .order("criado_em", { ascending: false })
-    .limit(60);
+    .range(0, POR_PAGINA - 1);
   return data || [];
 }
 
 export default async function OfertasPage() {
-  const ofertas = await getOfertas();
+  const inicial = await getInicial();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -26,10 +28,12 @@ export default async function OfertasPage() {
         Ofertas da <span className="text-br-green">Semana</span> ⚽
       </h1>
       <p className="mb-6 mt-1 text-sm text-cc-muted">
-        {ofertas.length} oferta(s) selecionada(s) — atualizadas toda semana
+        Seleção atualizada toda semana — aproveite enquanto durar
       </p>
-      <ProductGrid
-        produtos={ofertas}
+      <ListaProdutos
+        inicial={inicial}
+        tipo="ofertas"
+        porPagina={POR_PAGINA}
         vazio="Nenhuma oferta marcada como destaque ainda."
       />
     </div>

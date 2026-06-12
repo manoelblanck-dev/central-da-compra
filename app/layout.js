@@ -18,9 +18,18 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "Central da Compra — Os melhores achados em um só lugar",
+  metadataBase: new URL("https://centraldacompraonline.com.br"),
+  title: "Central da Compra — As melhores ofertas em um só lugar",
   description:
     "Ofertas selecionadas da Shopee, Mercado Livre e TikTok Shop. Encontre, compare e compre com segurança.",
+  openGraph: {
+    title: "Central da Compra — As melhores ofertas em um só lugar",
+    description:
+      "Ofertas da semana garimpadas pra você, da Shopee e Mercado Livre. ⚽ Especial Copa.",
+    type: "website",
+    locale: "pt_BR",
+    siteName: "Central da Compra",
+  },
 };
 
 export default function RootLayout({ children }) {

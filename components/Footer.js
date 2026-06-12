@@ -37,6 +37,11 @@ export default function Footer() {
         </div>
 
         <div className="mt-8 border-t border-cc-line pt-5 text-xs text-cc-muted">
+          <div className="mb-3 flex flex-wrap gap-x-5 gap-y-2">
+            <Link href="/ofertas" className="hover:text-cc-ink">Ofertas da Semana</Link>
+            <Link href="/privacidade" className="hover:text-cc-ink">Política de Privacidade</Link>
+            <Link href="/termos" className="hover:text-cc-ink">Termos de Uso</Link>
+          </div>
           <p>
             © {new Date().getFullYear()} Central da Compra. Alguns links são de
             afiliados — ao comprar por eles você ajuda a manter o site, sem custo

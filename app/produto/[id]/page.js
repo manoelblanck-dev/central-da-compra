@@ -12,6 +12,33 @@ async function getProduto(id) {
   return data;
 }
 
+export async function generateMetadata({ params }) {
+  const produto = await getProduto(params.id);
+  if (!produto) return { title: "Produto não encontrado — Central da Compra" };
+
+  const preco = formatarPreco(produto.preco);
+  const desc = produto.descricao
+    ? produto.descricao.slice(0, 150)
+    : `${produto.nome}${preco ? " por " + preco : ""} na Central da Compra.`;
+
+  return {
+    title: `${produto.nome} — Central da Compra`,
+    description: desc,
+    openGraph: {
+      title: produto.nome,
+      description: desc,
+      type: "website",
+      images: produto.imagem_url ? [{ url: produto.imagem_url }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: produto.nome,
+      description: desc,
+      images: produto.imagem_url ? [produto.imagem_url] : undefined,
+    },
+  };
+}
+
 async function getRelacionados(categoria, idAtual) {
   const { data } = await supabase
     .from("produtos")
