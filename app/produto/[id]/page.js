@@ -17,15 +17,25 @@ async function getProduto(id) {
   return data;
 }
 
-// Busca, no painel (config), um cupom ativo para a plataforma do produto.
-async function getCupomPlataforma(plataforma) {
+// Busca, no painel (config), um cupom ativo para a plataforma do produto
+// que o produto realmente ALCANCE (respeita o valor mínimo de compra).
+async function getCupomPlataforma(plataforma, preco) {
   const { data } = await supabase
     .from("config")
     .select("valor")
     .eq("chave", "cupons")
     .maybeSingle();
   const lista = Array.isArray(data?.valor) ? data.valor : [];
-  return lista.find((c) => c && c.plataforma === plataforma && c.codigo) || null;
+  const aplicaveis = lista.filter((c) => {
+    if (!c || c.plataforma !== plataforma || !c.codigo) return false;
+    const min = Number(c.minimo);
+    if (!c.minimo || isNaN(min) || min <= 0) return true; // sem mínimo
+    if (preco === null || preco === undefined || preco === "") return false; // produto sem preço: não arrisca
+    return Number(preco) >= min; // só mostra se o produto alcança o mínimo
+  });
+  // entre os aplicáveis, prefere o de maior mínimo (normalmente o melhor desconto)
+  aplicaveis.sort((a, b) => (Number(b.minimo) || 0) - (Number(a.minimo) || 0));
+  return aplicaveis[0] || null;
 }
 
 export async function generateMetadata({ params }) {
@@ -80,7 +90,7 @@ export default async function ProdutoPage({ params }) {
   const wpp = `https://wa.me/?text=${encodeURIComponent(msgWpp)}`;
 
   // cupom da plataforma deste produto (se houver cadastrado no painel)
-  const cupom = await getCupomPlataforma(produto.plataforma);
+  const cupom = await getCupomPlataforma(produto.plataforma, produto.preco);
 
   // Dados estruturados (Google pode exibir preço e estrelas no resultado)
   const schema = {

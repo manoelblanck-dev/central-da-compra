@@ -754,7 +754,7 @@ function SecaoCupons() {
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [msg, setMsg] = useState("");
-  const [novo, setNovo] = useState({ plataforma: "shopee", codigo: "", descricao: "", validade: "" });
+  const [novo, setNovo] = useState({ plataforma: "shopee", codigo: "", descricao: "", validade: "", minimo: "" });
   const [loteCupom, setLoteCupom] = useState(false);
 
   const carregar = useCallback(async () => {
@@ -803,7 +803,7 @@ function SecaoCupons() {
     }
     const nova = [...lista, { ...novo, codigo: codigo.toUpperCase() }];
     persistir(nova);
-    setNovo({ plataforma: "shopee", codigo: "", descricao: "", validade: "" });
+    setNovo({ plataforma: "shopee", codigo: "", descricao: "", validade: "", minimo: "" });
   }
 
   function remover(i) {
@@ -837,6 +837,7 @@ function SecaoCupons() {
                     <span className="font-semibold text-cc-ink">{nomePlat(c.plataforma)}</span>{" "}
                     — <span className="cc-mono">{c.codigo}</span>
                     {c.descricao ? <span className="text-cc-muted"> · {c.descricao}</span> : ""}
+                    {c.minimo ? <span className="text-cc-muted"> · mín. R${c.minimo}</span> : ""}
                     {c.validade ? <span className="text-cc-muted"> · até {c.validade}</span> : ""}
                   </div>
                   <button
@@ -892,6 +893,21 @@ function SecaoCupons() {
                 className={campo}
                 placeholder="30/06"
               />
+            </div>
+            <div>
+              <label className={rotulo}>Valor mínimo de compra (opcional)</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={novo.minimo}
+                onChange={(e) => setNovo((n) => ({ ...n, minimo: e.target.value }))}
+                className={campo}
+                placeholder="40"
+              />
+              <p className="mt-1 text-xs text-cc-muted">
+                Se preencher, o cupom só aparece em produtos com preço igual ou acima disso.
+              </p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -951,12 +967,15 @@ function FormLoteCupons({ listaAtual = [], fechar, aoConcluir }) {
       .map((l) => l.trim())
       .filter(Boolean)
       .map((linha) => {
-        const [plat, codigo, descricao, validade] = linha.split("|").map((p) => (p || "").trim());
+        const [plat, codigo, descricao, validade, minimo] = linha
+          .split("|")
+          .map((p) => (p || "").trim());
         return {
           plataforma: detectaPlat(plat),
           codigo: (codigo || "").toUpperCase(),
           descricao: descricao || "",
           validade: validade || "",
+          minimo: minimo || "",
         };
       });
   }
@@ -1004,12 +1023,12 @@ function FormLoteCupons({ listaAtual = [], fechar, aoConcluir }) {
 
         <div className="mb-4 border border-cc-line bg-cc-cream/60 p-3 text-xs text-cc-ink">
           <p className="font-semibold">Um cupom por linha, neste formato:</p>
-          <p className="mt-1 font-mono">plataforma | código | descrição | validade</p>
+          <p className="mt-1 font-mono">plataforma | código | descrição | validade | mínimo</p>
           <p className="mt-2 text-cc-muted">
-            Só <b>plataforma</b> e <b>código</b> são obrigatórios. A plataforma é reconhecida
-            mesmo escrita solta (shopee, ml, mercado livre, tiktok). Exemplo:
+            Só <b>plataforma</b> e <b>código</b> são obrigatórios. O <b>mínimo</b> (valor de
+            compra) faz o cupom só aparecer em produtos que alcançam esse valor. Exemplo:
           </p>
-          <p className="mt-1 font-mono text-cc-muted">shopee | CUPOM10 | 10% OFF | 30/06</p>
+          <p className="mt-1 font-mono text-cc-muted">shopee | CUPOM10 | 10% OFF | 30/06 | 40</p>
         </div>
 
         {resultado ? (
@@ -1022,7 +1041,7 @@ function FormLoteCupons({ listaAtual = [], fechar, aoConcluir }) {
               value={texto}
               onChange={(e) => setTexto(e.target.value)}
               rows={9}
-              placeholder={"shopee | FRETE10 | Frete grátis\nmercado livre | ML20 | R$20 OFF | 30/06\ntiktok | TT15"}
+              placeholder={"shopee | FRETE10 | Frete grátis\nmercado livre | ML20 | R$20 OFF | 30/06 | 100\ntiktok | TT15"}
               className="w-full border border-cc-line p-3 font-mono text-xs outline-none focus:border-cc-yellow focus:ring-2 focus:ring-cc-yellow/30"
             />
             <p className="text-xs text-cc-muted">

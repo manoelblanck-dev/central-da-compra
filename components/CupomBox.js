@@ -22,8 +22,12 @@ export default function CupomBox({ cupom }) {
       <div className="text-sm text-cc-ink">
         <span className="font-bold">🎟️ Cupom:</span>{" "}
         {cupom.descricao || "desconto na plataforma"}
-        {cupom.validade ? (
-          <span className="block text-xs text-cc-muted">válido até {cupom.validade}</span>
+        {(cupom.minimo || cupom.validade) ? (
+          <span className="block text-xs text-cc-muted">
+            {cupom.minimo ? `compras a partir de R$${cupom.minimo}` : ""}
+            {cupom.minimo && cupom.validade ? " · " : ""}
+            {cupom.validade ? `válido até ${cupom.validade}` : ""}
+          </span>
         ) : null}
       </div>
       <button
