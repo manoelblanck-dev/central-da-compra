@@ -3,6 +3,7 @@
 import Link from "next/link";
 import PlatformBadge from "@/components/PlatformBadge";
 import Estrelas from "@/components/Estrelas";
+import BotaoFavorito from "@/components/BotaoFavorito";
 import { formatarPreco } from "@/lib/constantes";
 
 const BASE = "https://centraldacompraonline.com.br";
@@ -26,7 +27,11 @@ export default function ProductCard({ produto }) {
   const wpp = `https://wa.me/?text=${encodeURIComponent(msg)}`;
 
   return (
-    <div className="group flex flex-col overflow-hidden border border-cc-line bg-white shadow-card transition hover:-translate-y-0.5 hover:border-cc-yellow">
+    <div className="group relative flex flex-col overflow-hidden border border-cc-line bg-white shadow-card transition hover:-translate-y-0.5 hover:border-cc-yellow">
+      {/* favoritar (fica sobre a imagem, fora do link) */}
+      <div className="absolute right-2.5 top-2.5 z-20">
+        <BotaoFavorito id={produto.id} />
+      </div>
       {/* imagem + título levam à página do produto */}
       <Link href={`/produto/${produto.id}`} className="flex flex-1 flex-col">
         <div className="relative aspect-square overflow-hidden bg-cc-cream">
@@ -46,7 +51,7 @@ export default function ProductCard({ produto }) {
               -{desconto}%
             </span>
           ) : null}
-          <span className="absolute right-2.5 top-2.5">
+          <span className="absolute bottom-2.5 right-2.5">
             <PlatformBadge plataforma={produto.plataforma} />
           </span>
           {ehCopa ? (

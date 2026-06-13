@@ -6,12 +6,25 @@ import PlatformBadge from "@/components/PlatformBadge";
 import Estrelas from "@/components/Estrelas";
 import ProductGrid from "@/components/ProductGrid";
 import ImagemProduto from "@/components/ImagemProduto";
+import CupomBox from "@/components/CupomBox";
+import BotaoFavorito from "@/components/BotaoFavorito";
 
 export const dynamic = "force-dynamic";
 
 async function getProduto(id) {
   const { data } = await supabase.from("produtos").select("*").eq("id", id).single();
   return data;
+}
+
+// Busca, no painel (config), um cupom ativo para a plataforma do produto.
+async function getCupomPlataforma(plataforma) {
+  const { data } = await supabase
+    .from("config")
+    .select("valor")
+    .eq("chave", "cupons")
+    .maybeSingle();
+  const lista = Array.isArray(data?.valor) ? data.valor : [];
+  return lista.find((c) => c && c.plataforma === plataforma && c.codigo) || null;
 }
 
 export async function generateMetadata({ params }) {
@@ -65,8 +78,41 @@ export default async function ProdutoPage({ params }) {
   const msgWpp = `Olha essa oferta na Central da Compra 👇\n${produto.nome}\n${urlProduto}`;
   const wpp = `https://wa.me/?text=${encodeURIComponent(msgWpp)}`;
 
+  // cupom da plataforma deste produto (se houver cadastrado no painel)
+  const cupom = await getCupomPlataforma(produto.plataforma);
+
+  // Dados estruturados (Google pode exibir preço e estrelas no resultado)
+  const schema = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    name: produto.nome,
+    description: produto.descricao || `${produto.nome} na Central da Compra.`,
+    image: produto.imagem_url ? [produto.imagem_url] : undefined,
+    category: nomeCategoria(produto.categoria),
+  };
+  if (produto.preco) {
+    schema.offers = {
+      "@type": "Offer",
+      price: Number(produto.preco).toFixed(2),
+      priceCurrency: "BRL",
+      availability: "https://schema.org/InStock",
+      url: urlProduto,
+    };
+  }
+  if (produto.nota && produto.avaliacoes) {
+    schema.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: Number(produto.nota).toFixed(1),
+      reviewCount: Math.max(1, Math.round(Number(produto.avaliacoes))),
+    };
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
       {/* migalhas */}
       <nav className="mb-4 text-sm text-cc-muted">
         <Link href="/" className="hover:text-cc-ink">Início</Link>
@@ -148,7 +194,12 @@ export default async function ProdutoPage({ params }) {
               </svg>
               Compartilhar
             </a>
+            <BotaoFavorito id={produto.id} variante="linha" />
           </div>
+
+          {/* cupom da plataforma (se houver) */}
+          <CupomBox cupom={cupom} />
+
           {/* selos de confiança */}
           <div className="mt-4 grid gap-2 border border-cc-line bg-cc-cream/50 p-3 text-xs text-cc-ink sm:grid-cols-3">
             <span className="flex items-center gap-1.5">

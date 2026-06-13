@@ -58,6 +58,19 @@ export default function Header() {
             </button>
           </div>
         </form>
+
+        {/* Favoritos */}
+        <Link
+          href="/favoritos"
+          aria-label="Meus favoritos"
+          title="Meus favoritos"
+          className="flex shrink-0 items-center gap-1.5 text-cc-ink transition hover:text-cc-yellow-dark"
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <path d="M12 21s-7.5-4.6-10-9.2C.6 9 1.6 5.5 4.8 4.8 7 4.3 9 5.5 12 8.5c3-3 5-4.2 7.2-3.7 3.2.7 4.2 4.2 2.8 7C19.5 16.4 12 21 12 21z" />
+          </svg>
+          <span className="hidden text-sm font-medium sm:block">Favoritos</span>
+        </Link>
       </div>
 
       {/* Listra tricolor da Seleção */}
