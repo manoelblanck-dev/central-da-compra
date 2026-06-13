@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { CATEGORIAS, nomeCategoria } from "@/lib/constantes";
-import ListaProdutos from "@/components/ListaProdutos";
+import ListagemComFiltro from "@/components/ListagemComFiltro";
 
 export const dynamic = "force-dynamic";
 
@@ -25,12 +25,10 @@ export default async function CategoriaPage({ params }) {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="cc-mono text-3xl text-cc-ink">{nomeCategoria(slug)}</h1>
-      <p className="mb-6 mt-1 text-sm text-cc-muted">Confira os produtos desta categoria</p>
-      <ListaProdutos
+      <h1 className="mb-6 cc-mono text-3xl text-cc-ink">{nomeCategoria(slug)}</h1>
+      <ListagemComFiltro
         inicial={inicial}
-        tipo="categoria"
-        params={{ slug }}
+        contexto={{ tipo: "categoria", slug }}
         porPagina={POR_PAGINA}
       />
     </div>

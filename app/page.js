@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import ProductGrid from "@/components/ProductGrid";
-import CategoryCards from "@/components/CategoryCards";
+import CategoryCarousel from "@/components/CategoryCarousel";
 
 // Sempre buscar dados frescos (produtos recém-cadastrados aparecem na hora).
 export const dynamic = "force-dynamic";
@@ -28,7 +28,7 @@ export default async function Home() {
 
   return (
     <div className="mx-auto max-w-6xl px-4">
-      {/* OFERTAS DA SEMANA — primeira coisa que o visitante vê */}
+      {/* Banner Ofertas da Semana */}
       <section className="mt-6">
         <div className="flex items-center gap-3 border border-cc-line bg-cc-cream px-4 py-4 sm:gap-4 sm:px-6 sm:py-5">
           <span className="text-2xl sm:text-3xl" aria-hidden>⚽</span>
@@ -42,14 +42,19 @@ export default async function Home() {
             </p>
           </div>
         </div>
+      </section>
 
-        <div className="mt-4">
-          <ProductGrid
-            produtos={ofertas}
-            vazio="Marque produtos como “destaque” no painel admin para eles aparecerem aqui."
-          />
-        </div>
+      {/* CATEGORIAS (carrossel) — em cima dos produtos */}
+      <section className="mt-8">
+        <CategoryCarousel />
+      </section>
 
+      {/* PRODUTOS em destaque da semana */}
+      <section className="mt-10">
+        <ProductGrid
+          produtos={ofertas}
+          vazio="Marque produtos como “destaque” no painel admin para eles aparecerem aqui."
+        />
         {ofertas.length > 0 ? (
           <div className="mt-5 text-center">
             <Link
@@ -60,15 +65,6 @@ export default async function Home() {
             </Link>
           </div>
         ) : null}
-      </section>
-
-      {/* CATEGORIAS */}
-      <section className="mt-12">
-        <div className="mb-4 flex items-baseline justify-between">
-          <h2 className="cc-mono text-2xl text-cc-ink">Explore por categoria</h2>
-          <span className="text-sm text-cc-muted">escolha e encontre rápido</span>
-        </div>
-        <CategoryCards />
       </section>
 
       {/* NOVIDADES */}
