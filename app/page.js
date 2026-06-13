@@ -2,6 +2,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import ProductGrid from "@/components/ProductGrid";
 import CategoryCarousel from "@/components/CategoryCarousel";
+import ProximoJogo from "@/components/ProximoJogo";
 
 // Sempre buscar dados frescos (produtos recém-cadastrados aparecem na hora).
 export const dynamic = "force-dynamic";
@@ -20,11 +21,33 @@ async function getProdutos() {
     .order("criado_em", { ascending: false })
     .limit(12);
 
-  return { ofertas: ofertas || [], recentes: recentes || [] };
+  // Mais clicados (usa o contador de cliques que já coletamos)
+  const { data: clicados } = await supabase
+    .from("produtos")
+    .select("*")
+    .gt("cliques", 0)
+    .order("cliques", { ascending: false })
+    .limit(8);
+
+  return {
+    ofertas: ofertas || [],
+    recentes: recentes || [],
+    clicados: clicados || [],
+  };
+}
+
+async function getProximoJogo() {
+  const { data } = await supabase
+    .from("config")
+    .select("valor")
+    .eq("chave", "proximo_jogo")
+    .maybeSingle();
+  return data?.valor || null;
 }
 
 export default async function Home() {
-  const { ofertas, recentes } = await getProdutos();
+  const { ofertas, recentes, clicados } = await getProdutos();
+  const jogo = await getProximoJogo();
 
   return (
     <div className="mx-auto max-w-6xl px-4">
@@ -43,6 +66,9 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* Próximo jogo do Brasil (aparece só se houver jogo cadastrado) */}
+      <ProximoJogo jogo={jogo} />
 
       {/* faixa de confiança discreta */}
       <div className="mt-3 flex flex-wrap items-center justify-center gap-x-6 gap-y-1 border border-cc-line bg-white px-4 py-2.5 text-center text-xs text-cc-muted">
@@ -73,6 +99,14 @@ export default async function Home() {
           </div>
         ) : null}
       </section>
+
+      {/* MAIS CLICADOS (aparece quando já houver cliques) */}
+      {clicados.length > 0 ? (
+        <section className="mt-12">
+          <h2 className="mb-4 cc-mono text-2xl text-cc-ink">🔥 Os mais clicados</h2>
+          <ProductGrid produtos={clicados} />
+        </section>
+      ) : null}
 
       {/* NOVIDADES */}
       <section className="mt-12">

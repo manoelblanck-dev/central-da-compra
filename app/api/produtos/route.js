@@ -21,6 +21,11 @@ function linkValido(url) {
 
 function montarProduto(body) {
   const numero = (v) => (v === "" || v === null || v === undefined ? null : Number(v));
+  // nota limitada a 0–5; avaliações nunca negativas
+  let nota = numero(body.nota);
+  if (nota !== null) nota = Math.max(0, Math.min(5, nota));
+  let avaliacoes = numero(body.avaliacoes);
+  if (avaliacoes !== null) avaliacoes = Math.max(0, Math.round(avaliacoes));
   return {
     nome: body.nome?.trim() || "",
     descricao: body.descricao?.trim() || null,
@@ -31,6 +36,8 @@ function montarProduto(body) {
     plataforma: body.plataforma || "shopee",
     categoria: body.categoria || "outros",
     destaque: !!body.destaque,
+    nota,
+    avaliacoes,
   };
 }
 

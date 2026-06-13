@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { formatarPreco, nomeCategoria } from "@/lib/constantes";
 import PlatformBadge from "@/components/PlatformBadge";
+import Estrelas from "@/components/Estrelas";
 import ProductGrid from "@/components/ProductGrid";
 import ImagemProduto from "@/components/ImagemProduto";
 
@@ -93,6 +94,17 @@ export default async function ProdutoPage({ params }) {
           <h1 className="mt-3 text-2xl font-semibold leading-snug text-cc-ink sm:text-3xl">
             {produto.nome}
           </h1>
+
+          {(produto.nota || produto.cliques > 0) ? (
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+              {produto.nota ? <Estrelas nota={produto.nota} avaliacoes={produto.avaliacoes} /> : null}
+              {produto.cliques > 5 ? (
+                <span className="text-xs text-cc-muted">
+                  👀 {produto.cliques} pessoas já viram esta oferta
+                </span>
+              ) : null}
+            </div>
+          ) : null}
 
           {/* preço */}
           <div className="mt-4">

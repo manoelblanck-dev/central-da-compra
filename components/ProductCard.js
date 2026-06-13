@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import PlatformBadge from "@/components/PlatformBadge";
+import Estrelas from "@/components/Estrelas";
 import { formatarPreco } from "@/lib/constantes";
 
 const BASE = "https://centraldacompraonline.com.br";
@@ -59,6 +60,7 @@ export default function ProductCard({ produto }) {
           <h3 className="line-clamp-2 text-sm font-medium leading-snug text-cc-ink">
             {produto.nome}
           </h3>
+          {produto.nota ? <Estrelas nota={produto.nota} avaliacoes={produto.avaliacoes} /> : null}
           <div className="mt-auto pt-1">
             {preco ? (
               <>
