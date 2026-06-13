@@ -44,6 +44,13 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* faixa de confiança discreta */}
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-x-6 gap-y-1 border border-cc-line bg-white px-4 py-2.5 text-center text-xs text-cc-muted">
+        <span>🔒 Compra 100% segura</span>
+        <span>✓ Direto na loja oficial</span>
+        <span>🙂 Sem cadastro, sem complicação</span>
+      </div>
+
       {/* CATEGORIAS (carrossel) — em cima dos produtos */}
       <section className="mt-8">
         <CategoryCarousel />
@@ -59,7 +66,7 @@ export default async function Home() {
           <div className="mt-5 text-center">
             <Link
               href="/ofertas"
-              className="inline-block bg-cc-ink px-6 py-3 text-sm font-semibold text-white transition hover:bg-black"
+              className="inline-block bg-cc-ink px-6 py-3 text-sm font-semibold text-white transition hover:bg-black active:translate-y-px"
             >
               Ver todas as ofertas da semana →
             </Link>

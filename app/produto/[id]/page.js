@@ -121,7 +121,7 @@ export default async function ProdutoPage({ params }) {
               href={`/ir/${produto.id}`}
               target="_blank"
               rel="nofollow sponsored noopener noreferrer"
-              className="flex items-center justify-center gap-2 bg-cc-yellow px-8 py-4 text-base font-bold text-cc-ink shadow-card transition hover:bg-cc-yellow-dark"
+              className="flex items-center justify-center gap-2 bg-cc-yellow px-8 py-4 text-base font-bold text-cc-ink shadow-card transition hover:bg-cc-yellow-dark active:translate-y-px"
             >
               Ver Oferta →
             </a>
@@ -137,15 +137,23 @@ export default async function ProdutoPage({ params }) {
               Compartilhar
             </a>
           </div>
-          <p className="mt-3 text-xs text-cc-muted">
-            Você será levado para a loja oficial da{" "}
-            {produto.plataforma === "mercado_livre"
-              ? "Mercado Livre"
-              : produto.plataforma === "tiktok_shop"
-              ? "TikTok Shop"
-              : "Shopee"}{" "}
-            para finalizar a compra com segurança.
-          </p>
+          {/* selos de confiança */}
+          <div className="mt-4 grid gap-2 border border-cc-line bg-cc-cream/50 p-3 text-xs text-cc-ink sm:grid-cols-3">
+            <span className="flex items-center gap-1.5">
+              <span aria-hidden>✓</span> Redirecionado para a loja oficial
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span aria-hidden>🔒</span> Compra segura na{" "}
+              {produto.plataforma === "mercado_livre"
+                ? "Mercado Livre"
+                : produto.plataforma === "tiktok_shop"
+                ? "TikTok Shop"
+                : "Shopee"}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span aria-hidden>🙂</span> Sem cadastro
+            </span>
+          </div>
 
           {/* descrição — abaixo do botão, pode ser longa sem atrapalhar */}
           {produto.descricao ? (

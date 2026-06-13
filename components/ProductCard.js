@@ -89,7 +89,7 @@ export default function ProductCard({ produto }) {
           href={`/ir/${produto.id}`}
           target="_blank"
           rel="nofollow sponsored noopener noreferrer"
-          className="flex-1 bg-cc-yellow py-2.5 text-center text-sm font-bold text-cc-ink transition hover:bg-cc-yellow-dark"
+          className="flex-1 bg-cc-yellow py-2.5 text-center text-sm font-bold text-cc-ink transition hover:bg-cc-yellow-dark active:translate-y-px"
         >
           Ver Oferta
         </a>

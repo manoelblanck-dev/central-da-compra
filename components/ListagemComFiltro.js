@@ -5,6 +5,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { CATEGORIAS, nomeCategoria } from "@/lib/constantes";
 import ProductGrid from "@/components/ProductGrid";
+import SkeletonGrid from "@/components/SkeletonGrid";
 
 const MAXP = 1000; // teto do slider de preço
 const PLATS = [
@@ -17,6 +18,7 @@ export default function ListagemComFiltro({ inicial = [], contexto, porPagina = 
   const [produtos, setProdutos] = useState(inicial);
   const [offset, setOffset] = useState(inicial.length);
   const [carregando, setCarregando] = useState(false);
+  const [recarregando, setRecarregando] = useState(false);
   const [acabou, setAcabou] = useState(inicial.length < porPagina);
   const [drawer, setDrawer] = useState(false);
 
@@ -41,13 +43,13 @@ export default function ListagemComFiltro({ inicial = [], contexto, porPagina = 
   }
 
   async function aplicar() {
-    setCarregando(true);
+    setRecarregando(true);
     const { data } = await montaQuery(0);
     const novos = data || [];
     setProdutos(novos);
     setOffset(novos.length);
     setAcabou(novos.length < porPagina);
-    setCarregando(false);
+    setRecarregando(false);
   }
 
   async function carregarMais() {
@@ -198,13 +200,17 @@ export default function ListagemComFiltro({ inicial = [], contexto, porPagina = 
         <aside className="sticky top-28 hidden md:block">{Sidebar}</aside>
 
         <div>
-          <ProductGrid produtos={produtos} vazio="Nenhum produto com esses filtros. Tente ampliar a faixa de preço." />
-          {!acabou && produtos.length > 0 ? (
+          {recarregando ? (
+            <SkeletonGrid count={8} />
+          ) : (
+            <ProductGrid produtos={produtos} vazio="Nenhum produto com esses filtros. Tente ampliar a faixa de preço." />
+          )}
+          {!acabou && !recarregando && produtos.length > 0 ? (
             <div className="mt-8 text-center">
               <button
                 onClick={carregarMais}
                 disabled={carregando}
-                className="bg-cc-ink px-7 py-3 text-sm font-semibold text-white transition hover:bg-black disabled:opacity-60"
+                className="bg-cc-ink px-7 py-3 text-sm font-semibold text-white transition hover:bg-black active:translate-y-px disabled:opacity-60"
               >
                 {carregando ? "Carregando..." : "Carregar mais"}
               </button>
