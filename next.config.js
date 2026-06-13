@@ -1,9 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Usamos a tag <img> comum (em vez de next/image) para aceitar
-  // fotos de produtos de qualquer site (Shopee, Mercado Livre, etc.)
-  // sem precisar configurar domínios um por um.
   reactStrictMode: true,
+  images: {
+    // Aceita imagens de qualquer site via https (Shopee, Mercado Livre,
+    // Supabase, URLs coladas...) e ainda assim otimiza (WebP, tamanhos
+    // responsivos, carregamento preguiçoso) — deixa o site bem mais leve.
+    remotePatterns: [{ protocol: "https", hostname: "**" }],
+  },
 };
 
 module.exports = nextConfig;

@@ -6,6 +6,7 @@ import PlatformBadge from "@/components/PlatformBadge";
 import Estrelas from "@/components/Estrelas";
 import ProductGrid from "@/components/ProductGrid";
 import ImagemProduto from "@/components/ImagemProduto";
+import LinkOferta from "@/components/LinkOferta";
 import CupomBox from "@/components/CupomBox";
 import BotaoFavorito from "@/components/BotaoFavorito";
 
@@ -125,12 +126,8 @@ export default async function ProdutoPage({ params }) {
       <div className="grid gap-6 md:grid-cols-2 md:items-start md:gap-10">
         {/* imagem — fixa no desktop, sem distorção, independente da descrição */}
         <div className="md:sticky md:top-28">
-          <div className="flex aspect-square w-full items-center justify-center overflow-hidden border border-cc-line bg-cc-cream">
-            <ImagemProduto
-              src={produto.imagem_url}
-              alt={produto.nome}
-              className="h-full w-full object-contain"
-            />
+          <div className="overflow-hidden border border-cc-line bg-cc-cream">
+            <ImagemProduto src={produto.imagem_url} alt={produto.nome} />
           </div>
         </div>
 
@@ -171,18 +168,19 @@ export default async function ProdutoPage({ params }) {
                 Você economiza {formatarPreco(Number(produto.preco_antigo) - Number(produto.preco))}
               </span>
             ) : null}
+            <p className="mt-2 text-xs text-cc-muted">
+              💡 O preço pode mudar na loja — confira o valor atual na página oficial antes de comprar.
+            </p>
           </div>
 
           {/* CTA: Ver Oferta + compartilhar no WhatsApp */}
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-stretch">
-            <a
-              href={`/ir/${produto.id}`}
-              target="_blank"
-              rel="nofollow sponsored noopener noreferrer"
+            <LinkOferta
+              id={produto.id}
               className="flex items-center justify-center gap-2 bg-cc-yellow px-8 py-4 text-base font-bold text-cc-ink shadow-card transition hover:bg-cc-yellow-dark active:translate-y-px"
             >
               Ver Oferta →
-            </a>
+            </LinkOferta>
             <a
               href={wpp}
               target="_blank"

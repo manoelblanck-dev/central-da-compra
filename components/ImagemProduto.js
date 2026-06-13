@@ -1,19 +1,23 @@
 "use client";
 
-// Imagem com fallback para a logo caso o link da foto esteja quebrado.
-// Fica num componente "client" porque usa onError (não permitido em
-// componentes de servidor, como a página do produto).
-export default function ImagemProduto({ src, alt, className }) {
+import Image from "next/image";
+import { useState } from "react";
+
+// Imagem da página do produto, otimizada (next/image) e com fallback
+// para a logo caso o link da foto esteja quebrado.
+export default function ImagemProduto({ src, alt }) {
+  const [atual, setAtual] = useState(src || "/logo.png");
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src || "/logo.png"}
-      alt={alt}
-      onError={(e) => {
-        e.currentTarget.onerror = null;
-        e.currentTarget.src = "/logo.png";
-      }}
-      className={className}
-    />
+    <div className="relative aspect-square w-full">
+      <Image
+        src={atual}
+        alt={alt}
+        fill
+        sizes="(max-width: 768px) 100vw, 50vw"
+        className="object-contain"
+        priority
+        onError={() => setAtual("/logo.png")}
+      />
+    </div>
   );
 }

@@ -1,14 +1,18 @@
 "use client";
 
+import Image from "next/image";
+import { useState } from "react";
 import Link from "next/link";
 import PlatformBadge from "@/components/PlatformBadge";
 import Estrelas from "@/components/Estrelas";
 import BotaoFavorito from "@/components/BotaoFavorito";
+import LinkOferta from "@/components/LinkOferta";
 import { formatarPreco } from "@/lib/constantes";
 
 const BASE = "https://centraldacompraonline.com.br";
 
 export default function ProductCard({ produto }) {
+  const [imgSrc, setImgSrc] = useState(produto.imagem_url || "/logo.png");
   const preco = formatarPreco(produto.preco);
   const precoAntigo = formatarPreco(produto.preco_antigo);
   const temDesconto =
@@ -35,16 +39,13 @@ export default function ProductCard({ produto }) {
       {/* imagem + título levam à página do produto */}
       <Link href={`/produto/${produto.id}`} className="flex flex-1 flex-col">
         <div className="relative aspect-square overflow-hidden bg-cc-cream">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={produto.imagem_url || "/logo.png"}
+          <Image
+            src={imgSrc}
             alt={produto.nome}
-            onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = "/logo.png";
-            }}
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-            loading="lazy"
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-cover transition duration-300 group-hover:scale-105"
+            onError={() => setImgSrc("/logo.png")}
           />
           {desconto ? (
             <span className="absolute left-2.5 top-2.5 bg-cc-ink px-2 py-0.5 text-[11px] font-bold text-white">
@@ -92,14 +93,12 @@ export default function ProductCard({ produto }) {
 
       {/* ações: Ver Oferta (link de afiliado) + compartilhar no WhatsApp */}
       <div className="flex gap-2 p-3 pt-0">
-        <a
-          href={`/ir/${produto.id}`}
-          target="_blank"
-          rel="nofollow sponsored noopener noreferrer"
+        <LinkOferta
+          id={produto.id}
           className="flex-1 bg-cc-yellow py-2.5 text-center text-sm font-bold text-cc-ink transition hover:bg-cc-yellow-dark active:translate-y-px"
         >
           Ver Oferta
-        </a>
+        </LinkOferta>
         <a
           href={wpp}
           target="_blank"
