@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import ProductGrid from "@/components/ProductGrid";
 import CategoryCarousel from "@/components/CategoryCarousel";
 import ProximoJogo from "@/components/ProximoJogo";
+import CupomStrip from "@/components/CupomStrip";
 
 // Sempre buscar dados frescos (produtos recém-cadastrados aparecem na hora).
 export const dynamic = "force-dynamic";
@@ -54,10 +55,6 @@ async function getCupons() {
   return Array.isArray(data?.valor) ? data.valor.filter((c) => c && c.codigo) : [];
 }
 
-function nomePlataforma(id) {
-  return id === "mercado_livre" ? "Mercado Livre" : id === "tiktok_shop" ? "TikTok Shop" : "Shopee";
-}
-
 export default async function Home() {
   const { ofertas, recentes, clicados } = await getProdutos();
   const jogo = await getProximoJogo();
@@ -92,19 +89,7 @@ export default async function Home() {
       </div>
 
       {/* faixa de cupons (só aparece se houver cupom cadastrado) */}
-      {cupons.length > 0 ? (
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-2 border border-dashed border-cc-yellow-dark bg-[#FFF7E6] px-4 py-2.5 text-sm text-cc-ink">
-          <span className="font-bold">🎟️ Cupons ativos:</span>
-          {cupons.map((c, i) => (
-            <span key={i} className="inline-flex items-center gap-1">
-              <span className="text-cc-muted">{nomePlataforma(c.plataforma)}</span>
-              <span className="cc-mono border border-cc-line bg-white px-2 py-0.5 tracking-wider">
-                {c.codigo}
-              </span>
-            </span>
-          ))}
-        </div>
-      ) : null}
+      <CupomStrip cupons={cupons} />
 
       {/* CATEGORIAS (carrossel) — em cima dos produtos */}
       <section className="mt-8">
