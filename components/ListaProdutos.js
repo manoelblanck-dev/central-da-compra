@@ -63,7 +63,7 @@ export default function ListaProdutos({ inicial = [], tipo, params = {}, porPagi
           <button
             onClick={carregarMais}
             disabled={carregando}
-            className="bg-cc-ink px-7 py-3 text-sm font-semibold text-white transition hover:bg-black disabled:opacity-60"
+            className="rounded-xl bg-cc-ink px-7 py-3 text-sm font-semibold text-white transition hover:bg-black disabled:opacity-60"
           >
             {carregando ? "Carregando..." : "Carregar mais"}
           </button>

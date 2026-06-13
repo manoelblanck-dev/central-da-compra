@@ -18,7 +18,7 @@ export default function CupomBox({ cupom }) {
   }
 
   return (
-    <div className="mt-4 flex flex-col gap-2 border border-dashed border-cc-yellow-dark bg-[#FFF7E6] p-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mt-4 flex flex-col gap-2 rounded-2xl border border-dashed border-cc-yellow-dark bg-[#FFF7E6] p-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="text-sm text-cc-ink">
         <span className="font-bold">🎟️ Cupom:</span>{" "}
         {cupom.descricao || "desconto na plataforma"}
@@ -32,7 +32,7 @@ export default function CupomBox({ cupom }) {
       </div>
       <button
         onClick={copiar}
-        className="flex items-center justify-center gap-2 border border-cc-ink bg-white px-4 py-2 text-sm font-bold text-cc-ink transition hover:bg-cc-cream active:translate-y-px"
+        className="flex items-center justify-center gap-2 rounded-xl border border-cc-ink bg-white px-4 py-2 text-sm font-bold text-cc-ink transition hover:bg-cc-cream active:translate-y-px"
       >
         <span className="cc-mono tracking-wider">{cupom.codigo}</span>
         <span className="text-xs font-semibold text-cc-muted">

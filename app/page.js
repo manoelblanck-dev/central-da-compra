@@ -62,69 +62,77 @@ export default async function Home() {
 
   return (
     <div className="mx-auto max-w-6xl px-4">
-      {/* Banner Ofertas da Semana */}
-      <section className="mt-6">
-        <div className="flex items-center gap-3 border border-cc-line bg-cc-cream px-4 py-4 sm:gap-4 sm:px-6 sm:py-5">
-          <span className="text-2xl sm:text-3xl" aria-hidden>⚽</span>
-          <div>
-            <h1 className="cc-mono text-2xl leading-tight text-cc-ink sm:text-3xl">
-              Ofertas da <span className="text-br-green">Semana</span>
+      {/* HERO emoldurado */}
+      <section className="mt-3">
+        <div className="relative overflow-hidden rounded-3xl border border-cc-line bg-[linear-gradient(135deg,#FFF6E6_0%,#FAF6EF_45%,#F3EEE5_100%)] px-6 py-10 sm:px-10 sm:py-14">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(255,188,75,0.35),transparent_70%)]" />
+          <div className="relative">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-cc-line bg-white px-3 py-1.5 text-xs font-semibold text-br-green shadow-card">
+              ⚽ Especial Copa do Mundo
+            </span>
+            <h1 className="mt-4 max-w-[16ch] text-3xl font-semibold leading-[1.05] tracking-tight text-cc-ink sm:text-5xl">
+              As melhores ofertas, <span className="serif-accent">garimpadas pra você</span>
             </h1>
-            <p className="mt-0.5 text-sm text-cc-muted">
-              As melhores promoções da Shopee e Mercado Livre, garimpadas pra você —
-              atualizadas toda semana.
+            <p className="mt-3 max-w-[48ch] text-sm text-cc-muted sm:text-base">
+              Promoções selecionadas da Shopee e Mercado Livre, atualizadas toda semana.
+              Você compra direto na loja oficial, com segurança.
             </p>
+            <div className="mt-5 flex flex-wrap gap-x-6 gap-y-1.5 text-[13px] text-cc-muted">
+              <span>🔒 <b className="font-semibold text-cc-ink">Compra 100% segura</b></span>
+              <span>✓ <b className="font-semibold text-cc-ink">Direto na loja oficial</b></span>
+              <span>🙂 <b className="font-semibold text-cc-ink">Sem cadastro</b></span>
+            </div>
+            <CupomStrip cupons={cupons} />
           </div>
         </div>
       </section>
 
-      {/* Próximo jogo do Brasil (aparece só se houver jogo cadastrado) */}
+      {/* Próximo jogo do Brasil (só aparece se houver jogo cadastrado) */}
       <ProximoJogo jogo={jogo} />
 
-      {/* faixa de confiança discreta */}
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-x-6 gap-y-1 border border-cc-line bg-white px-4 py-2.5 text-center text-xs text-cc-muted">
-        <span>🔒 Compra 100% segura</span>
-        <span>✓ Direto na loja oficial</span>
-        <span>🙂 Sem cadastro, sem complicação</span>
-      </div>
-
-      {/* faixa de cupons (só aparece se houver cupom cadastrado) */}
-      <CupomStrip cupons={cupons} />
-
-      {/* CATEGORIAS (carrossel) — em cima dos produtos */}
-      <section className="mt-8">
+      {/* CATEGORIAS (carrossel) */}
+      <section className="mt-10">
         <CategoryCarousel />
       </section>
 
-      {/* PRODUTOS em destaque da semana */}
-      <section className="mt-10">
+      {/* OFERTAS DA SEMANA */}
+      <section className="mt-12">
+        <div className="mb-4 flex items-end justify-between">
+          <h2 className="text-2xl font-semibold tracking-tight text-cc-ink">
+            Ofertas da <span className="serif-accent text-[1.15em]">Semana</span>
+          </h2>
+        </div>
         <ProductGrid
           produtos={ofertas}
           vazio="Marque produtos como “destaque” no painel admin para eles aparecerem aqui."
         />
         {ofertas.length > 0 ? (
-          <div className="mt-5 text-center">
+          <div className="mt-6 text-center">
             <Link
               href="/ofertas"
-              className="inline-block bg-cc-ink px-6 py-3 text-sm font-semibold text-white transition hover:bg-black active:translate-y-px"
+              className="inline-block rounded-xl bg-cc-ink px-6 py-3 text-sm font-semibold text-white transition hover:bg-black active:translate-y-px"
             >
-              Ver todas as ofertas da semana →
+              Ver todas as ofertas →
             </Link>
           </div>
         ) : null}
       </section>
 
-      {/* MAIS CLICADOS (aparece quando já houver cliques) */}
+      {/* MAIS CLICADOS */}
       {clicados.length > 0 ? (
-        <section className="mt-12">
-          <h2 className="mb-4 cc-mono text-2xl text-cc-ink">🔥 Os mais clicados</h2>
+        <section className="mt-14">
+          <h2 className="mb-4 text-2xl font-semibold tracking-tight text-cc-ink">
+            🔥 Os mais <span className="serif-accent text-[1.15em]">clicados</span>
+          </h2>
           <ProductGrid produtos={clicados} />
         </section>
       ) : null}
 
       {/* NOVIDADES */}
-      <section className="mt-12">
-        <h2 className="mb-4 cc-mono text-2xl text-cc-ink">Novidades</h2>
+      <section className="mt-14">
+        <h2 className="mb-4 text-2xl font-semibold tracking-tight text-cc-ink">
+          <span className="serif-accent text-[1.15em]">Novidades</span>
+        </h2>
         <ProductGrid
           produtos={recentes}
           vazio="Cadastre seu primeiro produto no painel admin para começar."

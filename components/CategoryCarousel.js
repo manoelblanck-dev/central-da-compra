@@ -6,7 +6,7 @@ import { CATEGORIAS } from "@/lib/constantes";
 
 function BandeiraBrasil() {
   return (
-    <svg viewBox="0 0 28 20" width="24" height="17" aria-label="Bandeira do Brasil">
+    <svg viewBox="0 0 28 20" width="18" height="13" aria-label="Bandeira do Brasil">
       <rect width="28" height="20" fill="#009739" />
       <polygon points="14,2.5 25.5,10 14,17.5 2.5,10" fill="#FEDD00" />
       <circle cx="14" cy="10" r="4.1" fill="#002776" />
@@ -24,20 +24,22 @@ export default function CategoryCarousel() {
 
   return (
     <section>
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="cc-mono text-2xl text-cc-ink">Explore por categoria</h2>
+      <div className="mb-4 flex items-end justify-between">
+        <h2 className="text-2xl font-semibold tracking-tight text-cc-ink">
+          Explore por <span className="serif-accent text-[1.15em]">categoria</span>
+        </h2>
         <div className="flex gap-1.5">
           <button
             onClick={() => rola(-1)}
             aria-label="Categorias anteriores"
-            className="grid h-8 w-8 place-items-center border border-cc-line bg-white text-lg text-cc-ink transition hover:border-cc-yellow hover:bg-cc-cream"
+            className="grid h-9 w-9 place-items-center rounded-xl border border-cc-line bg-white text-lg text-cc-ink shadow-card transition hover:bg-cc-cream"
           >
             ‹
           </button>
           <button
             onClick={() => rola(1)}
             aria-label="Próximas categorias"
-            className="grid h-8 w-8 place-items-center border border-cc-line bg-white text-lg text-cc-ink transition hover:border-cc-yellow hover:bg-cc-cream"
+            className="grid h-9 w-9 place-items-center rounded-xl border border-cc-line bg-white text-lg text-cc-ink shadow-card transition hover:bg-cc-cream"
           >
             ›
           </button>
@@ -52,32 +54,22 @@ export default function CategoryCarousel() {
             <Link
               key={c.slug}
               href={`/categoria/${c.slug}`}
-              className={`flex w-[100px] shrink-0 flex-col items-center gap-1.5 border px-1.5 py-3 transition hover:-translate-y-0.5 ${
+              className={`flex shrink-0 items-center gap-2.5 rounded-2xl border px-4 py-2.5 text-sm font-medium shadow-card transition hover:-translate-y-0.5 hover:shadow-cardlg ${
                 copa
-                  ? "border-br-green bg-[#F0FAF3]"
+                  ? "border-br-green/30 bg-[#F2FBF5] text-br-green"
                   : video
-                  ? "border-[#7A3FF2] bg-[#F4F0FF]"
-                  : "border-cc-line bg-white hover:border-cc-yellow"
+                  ? "border-[#7A3FF2]/30 bg-[#F4F0FF] text-[#5B27C4]"
+                  : "border-cc-line bg-white text-cc-ink"
               }`}
             >
               <span
-                className={`grid h-[34px] w-[34px] place-items-center text-lg ${
+                className={`grid h-7 w-7 place-items-center rounded-lg text-[15px] ${
                   copa ? "bg-[#DBF3E3]" : video ? "bg-[#E7DDFD]" : "bg-cc-cream"
                 }`}
               >
                 {copa ? <BandeiraBrasil /> : c.emoji}
               </span>
-              <span
-                className={`text-center text-[11px] font-medium leading-tight ${
-                  copa
-                    ? "font-semibold text-br-green"
-                    : video
-                    ? "font-semibold text-[#5B27C4]"
-                    : "text-cc-ink"
-                }`}
-              >
-                {c.nome}
-              </span>
+              <span className="whitespace-nowrap">{c.nome}</span>
             </Link>
           );
         })}

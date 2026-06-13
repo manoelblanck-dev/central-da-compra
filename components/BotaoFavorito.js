@@ -54,7 +54,7 @@ export default function BotaoFavorito({ id, variante = "card" }) {
       <button
         onClick={toggle}
         aria-label={ativo ? "Remover dos favoritos" : "Salvar nos favoritos"}
-        className="flex items-center justify-center gap-2 border border-cc-line px-4 py-4 text-sm font-semibold text-cc-ink transition hover:bg-cc-cream active:translate-y-px"
+        className="flex items-center justify-center gap-2 rounded-xl border border-cc-line px-5 py-4 text-sm font-semibold text-cc-ink transition hover:bg-cc-cream active:translate-y-px"
       >
         {Coracao}
         {ativo ? "Salvo" : "Salvar"}
@@ -66,7 +66,7 @@ export default function BotaoFavorito({ id, variante = "card" }) {
     <button
       onClick={toggle}
       aria-label={ativo ? "Remover dos favoritos" : "Salvar nos favoritos"}
-      className="grid h-8 w-8 place-items-center bg-white/90 text-cc-muted shadow-card backdrop-blur transition hover:bg-white"
+      className="grid h-9 w-9 place-items-center rounded-xl border border-white/70 bg-white/85 text-cc-muted shadow-card backdrop-blur transition hover:bg-white"
     >
       {Coracao}
     </button>

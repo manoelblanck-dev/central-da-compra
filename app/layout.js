@@ -1,14 +1,15 @@
-import { Fraunces, Inter } from "next/font/google";
+import { Inter, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Analytics } from "@vercel/analytics/react";
 import Pixels from "@/components/Pixels";
 
-const fraunces = Fraunces({
+const instrument = Instrument_Serif({
   subsets: ["latin"],
-  weight: ["400", "600", "700", "900"],
-  variable: "--font-fraunces",
+  weight: "400",
+  style: ["normal", "italic"],
+  variable: "--font-instrument",
   display: "swap",
 });
 
@@ -35,7 +36,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="pt-BR" className={`${fraunces.variable} ${inter.variable}`}>
+    <html lang="pt-BR" className={`${instrument.variable} ${inter.variable}`}>
       <body className="font-sans text-cc-ink bg-white flex min-h-screen flex-col">
         <Header />
         <main className="flex-1">{children}</main>

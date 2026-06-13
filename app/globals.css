@@ -12,7 +12,7 @@ html {
 
 body {
   background-color: #ffffff;
-  color: #211c15;
+  color: #16130f;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -31,11 +31,20 @@ input[type="number"]::-webkit-inner-spin-button {
   }
 }
 
-/* "Monograma" CC reaproveitável */
+/* Títulos premium (Inter apertado). Antes era serifado; agora o destaque
+   serifado fica por conta de .serif-accent nas palavras escolhidas. */
 .cc-mono {
-  font-family: var(--font-fraunces), Georgia, serif;
-  font-weight: 700;
-  letter-spacing: -0.04em;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Palavra de destaque em serifada itálica (estilo premium) */
+.serif-accent {
+  font-family: var(--font-instrument), Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0;
 }
 
 /* Esconde a barra de rolagem (usada no carrossel de categorias) */

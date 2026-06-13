@@ -87,7 +87,7 @@ export default function ListagemComFiltro({ inicial = [], contexto, porPagina = 
   const fillWidth = ((precoMax - precoMin) / MAXP) * 100;
 
   const Sidebar = (
-    <div className="border border-cc-line bg-white">
+    <div className="rounded-2xl border border-cc-line bg-white shadow-card">
       <div className="flex items-center justify-between border-b border-cc-line px-4 py-3">
         <h3 className="text-[15px] font-bold text-cc-ink">Filtros</h3>
         <button onClick={limpar} className="text-[11px] font-semibold text-cc-muted hover:text-cc-ink">
@@ -101,7 +101,7 @@ export default function ListagemComFiltro({ inicial = [], contexto, porPagina = 
         <select
           value={ordenar}
           onChange={(e) => setOrdenar(e.target.value)}
-          className="w-full border border-cc-line p-2 text-sm outline-none focus:border-cc-yellow"
+          className="w-full rounded-lg border border-cc-line p-2 text-sm outline-none focus:border-cc-yellow"
         >
           <option value="recentes">Mais recentes</option>
           <option value="menor">Menor preço</option>
@@ -190,7 +190,7 @@ export default function ListagemComFiltro({ inicial = [], contexto, porPagina = 
       {/* botão de filtro no mobile */}
       <button
         onClick={() => setDrawer(true)}
-        className="mb-4 inline-flex items-center gap-2 bg-cc-ink px-4 py-2.5 text-sm font-semibold text-white md:hidden"
+        className="mb-4 inline-flex items-center gap-2 rounded-xl bg-cc-ink px-4 py-2.5 text-sm font-semibold text-white md:hidden"
       >
         ⚙ Filtrar
       </button>
@@ -210,7 +210,7 @@ export default function ListagemComFiltro({ inicial = [], contexto, porPagina = 
               <button
                 onClick={carregarMais}
                 disabled={carregando}
-                className="bg-cc-ink px-7 py-3 text-sm font-semibold text-white transition hover:bg-black active:translate-y-px disabled:opacity-60"
+                className="rounded-xl bg-cc-ink px-7 py-3 text-sm font-semibold text-white transition hover:bg-black active:translate-y-px disabled:opacity-60"
               >
                 {carregando ? "Carregando..." : "Carregar mais"}
               </button>
@@ -223,7 +223,7 @@ export default function ListagemComFiltro({ inicial = [], contexto, porPagina = 
       {drawer ? (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setDrawer(false)} />
-          <div className="absolute left-0 top-0 h-full w-[280px] overflow-y-auto bg-white shadow-2xl">
+          <div className="absolute left-0 top-0 h-full w-[280px] overflow-y-auto rounded-r-2xl bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-cc-line px-4 py-3">
               <span className="font-bold text-cc-ink">Filtrar</span>
               <button onClick={() => setDrawer(false)} aria-label="Fechar" className="text-cc-muted">✕</button>
@@ -232,7 +232,7 @@ export default function ListagemComFiltro({ inicial = [], contexto, porPagina = 
             <div className="p-4">
               <button
                 onClick={() => setDrawer(false)}
-                className="w-full bg-cc-yellow py-3 text-sm font-bold text-cc-ink"
+                className="w-full rounded-xl bg-cc-yellow py-3 text-sm font-bold text-cc-ink"
               >
                 Ver resultados
               </button>

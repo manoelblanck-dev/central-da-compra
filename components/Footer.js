@@ -12,7 +12,7 @@ export default function Footer() {
               <img
                 src="/logo.png"
                 alt="Central da Compra"
-                className="h-9 w-9 object-cover"
+                className="h-9 w-9 rounded-lg object-cover"
               />
               <span className="cc-mono text-lg">Central da Compra</span>
             </div>

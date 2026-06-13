@@ -27,7 +27,7 @@ export default function ProximoJogo({ jogo }) {
       : `🇧🇷 Brasil 🆚 ${jogo.adversario}`;
 
   return (
-    <div className="mt-3 overflow-hidden border border-br-green bg-[#F0FAF3]">
+    <div className="mt-3 overflow-hidden rounded-2xl border border-br-green/40 bg-[#F0FAF3]">
       <div className="flex flex-col items-center gap-1 px-4 py-3 text-center sm:flex-row sm:justify-between sm:text-left">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-wide text-br-green">
