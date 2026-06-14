@@ -6,6 +6,7 @@ import ProximoJogo from "@/components/ProximoJogo";
 import CupomStrip from "@/components/CupomStrip";
 import VistosRecentemente from "@/components/VistosRecentemente";
 import BotaoWhatsApp from "@/components/BotaoWhatsApp";
+import OfertaDoDia from "@/components/OfertaDoDia";
 import { IconEscudo, IconLojaOficial, IconRapido } from "@/components/IconesSelo";
 
 // Cache inteligente (ISR): a página é servida do cache (rápida) e atualizada
@@ -43,6 +44,19 @@ async function getProdutos() {
   };
 }
 
+// "Oferta do dia": o produto mais clicado que tenha preço (pra o card ficar
+// completo). Se ninguém clicou ainda, pega o mais recente com preço.
+async function getOfertaDoDia() {
+  const { data } = await supabase
+    .from("produtos")
+    .select("*")
+    .not("preco", "is", null)
+    .order("cliques", { ascending: false })
+    .order("criado_em", { ascending: false })
+    .limit(1);
+  return data?.[0] || null;
+}
+
 async function getProximoJogo() {
   const { data } = await supabase
     .from("config")
@@ -62,11 +76,12 @@ async function getCupons() {
 }
 
 export default async function Home() {
-  // Os 3 blocos são independentes — busca tudo em paralelo.
-  const [{ ofertas, recentes, clicados }, jogo, cupons] = await Promise.all([
+  // Os blocos são independentes — busca tudo em paralelo.
+  const [{ ofertas, recentes, clicados }, jogo, cupons, ofertaDoDia] = await Promise.all([
     getProdutos(),
     getProximoJogo(),
     getCupons(),
+    getOfertaDoDia(),
   ]);
 
   return (
@@ -104,6 +119,9 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* Oferta do dia — produto mais clicado, com urgência (contagem regressiva) */}
+      <OfertaDoDia produto={ofertaDoDia} />
 
       {/* Convite pro canal de ofertas no WhatsApp (só aparece com o link configurado) */}
       <BotaoWhatsApp variante="faixa" />
