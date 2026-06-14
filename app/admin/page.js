@@ -337,6 +337,40 @@ function Metrica({ rotulo, valor }) {
 function FormProduto({ form, setForm, salvar, fechar, salvando, erro }) {
   const [enviando, setEnviando] = useState(false);
   const [erroUpload, setErroUpload] = useState("");
+  const [buscandoML, setBuscandoML] = useState(false);
+  const [erroML, setErroML] = useState("");
+
+  async function buscarDoMercadoLivre() {
+    const link = (form.link_afiliado || "").trim();
+    if (!link) {
+      setErroML("Cole o link de afiliado antes de buscar.");
+      return;
+    }
+    setErroML("");
+    setBuscandoML(true);
+    try {
+      const res = await fetch("/api/produtos/buscar-ml", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ link }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErroML(data.erro || "Não consegui buscar os dados desse link.");
+        return;
+      }
+      setForm((f) => ({
+        ...f,
+        nome: data.nome || f.nome,
+        preco: data.preco ?? f.preco,
+        imagem_url: data.imagem_url || f.imagem_url,
+      }));
+    } catch {
+      setErroML("Erro de conexão.");
+    } finally {
+      setBuscandoML(false);
+    }
+  }
 
   const set = (campo) => (e) => {
     const v = e.target.type === "checkbox" ? e.target.checked : e.target.value;
@@ -458,6 +492,25 @@ function FormProduto({ form, setForm, salvar, fechar, salvando, erro }) {
             <p className="mt-1 text-xs text-cc-muted">
               A plataforma é detectada automaticamente pelo link (dá pra ajustar abaixo).
             </p>
+            {form.plataforma === "mercado_livre" ? (
+              <div className="mt-2">
+                <button
+                  type="button"
+                  onClick={buscarDoMercadoLivre}
+                  disabled={buscandoML}
+                  className="rounded-full border border-cc-line px-4 py-1.5 text-xs font-medium text-cc-ink transition hover:bg-cc-cream disabled:opacity-60"
+                >
+                  {buscandoML ? "Buscando..." : "🔎 Buscar nome, preço e imagem"}
+                </button>
+                {erroML ? (
+                  <p className="mt-1 text-xs text-red-600">{erroML}</p>
+                ) : (
+                  <p className="mt-1 text-xs text-cc-muted">
+                    Preenche nome, preço e imagem automaticamente a partir do link.
+                  </p>
+                )}
+              </div>
+            ) : null}
           </div>
 
           <div>
