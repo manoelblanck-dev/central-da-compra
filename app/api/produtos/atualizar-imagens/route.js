@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { tokenSessao } from "@/lib/auth";
 import { resolverIdML, buscarDadosML } from "@/lib/mercadoLivre";
+import { revalidarProdutos } from "@/lib/revalidar";
 
 async function autorizado(request) {
   const cookie = request.cookies.get("cc_admin")?.value;
@@ -55,5 +56,6 @@ export async function POST(request) {
     }
   }
 
+  if (atualizados > 0) revalidarProdutos();
   return NextResponse.json({ total: produtos?.length || 0, atualizados, semDados });
 }

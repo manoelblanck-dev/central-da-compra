@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { atualizarProdutosML } from "@/lib/atualizarProdutos";
+import { revalidarProdutos } from "@/lib/revalidar";
 
 // Sempre executar de verdade (sem cache), nunca em build.
 export const dynamic = "force-dynamic";
@@ -18,5 +19,6 @@ export async function GET(request) {
   }
 
   const resultados = await atualizarProdutosML();
+  if (resultados.some((r) => r.status === "ok")) revalidarProdutos();
   return NextResponse.json({ ok: true, total: resultados.length, resultados });
 }

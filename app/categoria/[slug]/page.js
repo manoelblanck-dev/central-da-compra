@@ -3,7 +3,13 @@ import { supabase } from "@/lib/supabase";
 import { CATEGORIAS, nomeCategoria } from "@/lib/constantes";
 import ListagemComFiltro from "@/components/ListagemComFiltro";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300; // cache inteligente (ISR), atualiza a cada 5 min
+
+// Diz ao Next quais categorias existem, pra ele já deixar as páginas prontas
+// no cache durante o build (lista fixa, sem consultar o banco).
+export function generateStaticParams() {
+  return CATEGORIAS.map((c) => ({ slug: c.slug }));
+}
 
 const POR_PAGINA = 12;
 

@@ -8,8 +8,10 @@ import VistosRecentemente from "@/components/VistosRecentemente";
 import BotaoWhatsApp from "@/components/BotaoWhatsApp";
 import { IconEscudo, IconLojaOficial, IconRapido } from "@/components/IconesSelo";
 
-// Sempre buscar dados frescos (produtos recém-cadastrados aparecem na hora).
-export const dynamic = "force-dynamic";
+// Cache inteligente (ISR): a página é servida do cache (rápida) e atualizada
+// a cada 5 min. Quando você mexe em produtos/cupons no painel, a revalidação
+// automática (lib/revalidar.js) atualiza na hora.
+export const revalidate = 300;
 
 async function getProdutos() {
   // As 3 consultas são independentes — roda em paralelo (mais rápido que em fila).

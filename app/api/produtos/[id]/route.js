@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { tokenSessao } from "@/lib/auth";
+import { revalidarProdutos } from "@/lib/revalidar";
 
 async function autorizado(request) {
   const cookie = request.cookies.get("cc_admin")?.value;
@@ -71,6 +72,7 @@ export async function PUT(request, { params }) {
   if (error) {
     return NextResponse.json({ erro: error.message }, { status: 400 });
   }
+  revalidarProdutos();
   return NextResponse.json(data);
 }
 
@@ -84,5 +86,6 @@ export async function DELETE(request, { params }) {
   if (error) {
     return NextResponse.json({ erro: error.message }, { status: 400 });
   }
+  revalidarProdutos();
   return NextResponse.json({ ok: true });
 }

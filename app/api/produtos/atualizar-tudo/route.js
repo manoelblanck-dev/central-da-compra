@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { tokenSessao } from "@/lib/auth";
 import { atualizarProdutosML } from "@/lib/atualizarProdutos";
+import { revalidarProdutos } from "@/lib/revalidar";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,8 @@ export async function POST(request) {
   const atualizados = resultados.filter((r) => r.status === "ok").length;
   const bloqueados = resultados.filter((r) => r.status === "bloqueado").length;
   const semMudanca = resultados.filter((r) => r.status === "sem-mudanca").length;
+
+  if (atualizados > 0) revalidarProdutos();
 
   return NextResponse.json({
     total: resultados.length,

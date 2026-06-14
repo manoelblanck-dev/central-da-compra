@@ -15,7 +15,22 @@ import BarraComprarMobile from "@/components/BarraComprarMobile";
 import PixelProduto from "@/components/PixelProduto";
 import { IconEscudo, IconLojaOficial, IconRapido } from "@/components/IconesSelo";
 
-export const dynamic = "force-dynamic";
+// Cache inteligente (ISR): rápida e atualizada a cada 5 min; mudanças no
+// painel atualizam na hora via revalidação automática (lib/revalidar.js).
+export const revalidate = 300;
+
+// Lista os produtos existentes pra o Next já deixar as páginas no cache
+// durante o build. Produtos novos (cadastrados depois) são gerados na hora
+// do primeiro acesso e também ficam em cache. Defensivo: se o banco falhar
+// no build, segue sem pré-gerar (as páginas geram sob demanda).
+export async function generateStaticParams() {
+  try {
+    const { data } = await supabase.from("produtos").select("id");
+    return (data || []).map((p) => ({ id: String(p.id) }));
+  } catch {
+    return [];
+  }
+}
 
 async function getProduto(id) {
   const { data } = await supabase.from("produtos").select("*").eq("id", id).single();

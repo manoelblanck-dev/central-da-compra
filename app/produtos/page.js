@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import ListagemComFiltro from "@/components/ListagemComFiltro";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300; // cache inteligente (ISR), atualiza a cada 5 min
 
 export const metadata = {
   title: "Todos os produtos — Central da Compra",
