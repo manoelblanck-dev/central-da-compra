@@ -4,6 +4,7 @@ import ProductGrid from "@/components/ProductGrid";
 import CategoryCarousel from "@/components/CategoryCarousel";
 import ProximoJogo from "@/components/ProximoJogo";
 import CupomStrip from "@/components/CupomStrip";
+import VistosRecentemente from "@/components/VistosRecentemente";
 
 // Sempre buscar dados frescos (produtos recém-cadastrados aparecem na hora).
 export const dynamic = "force-dynamic";
@@ -86,6 +87,9 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* Vistos recentemente (só aparece se a pessoa já visitou algum produto) */}
+      <VistosRecentemente />
 
       {/* Próximo jogo do Brasil (só aparece se houver jogo cadastrado) */}
       <ProximoJogo jogo={jogo} />

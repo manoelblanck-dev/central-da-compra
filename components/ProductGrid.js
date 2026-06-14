@@ -1,6 +1,7 @@
 "use client";
 
 import ProductCard from "@/components/ProductCard";
+import Reveal from "@/components/Reveal";
 
 export default function ProductGrid({ produtos, vazio }) {
   if (!produtos || produtos.length === 0) {
@@ -16,8 +17,10 @@ export default function ProductGrid({ produtos, vazio }) {
 
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-5">
-      {produtos.map((p) => (
-        <ProductCard key={p.id} produto={p} />
+      {produtos.map((p, i) => (
+        <Reveal key={p.id} delay={(i % 4) * 80}>
+          <ProductCard produto={p} />
+        </Reveal>
       ))}
     </div>
   );

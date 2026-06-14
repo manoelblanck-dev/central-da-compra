@@ -24,6 +24,7 @@ export default function ProductCard({ produto }) {
     ? formatarPreco(Number(produto.preco_antigo) - Number(produto.preco))
     : null;
   const ehCopa = produto.categoria === "selecao";
+  const ehPopular = Number(produto.cliques) >= 20;
 
   const urlProduto = `${BASE}/produto/${produto.id}`;
   const msg = `Olha essa oferta na Central da Compra 👇\n${produto.nome}\n${urlProduto}`;
@@ -46,11 +47,18 @@ export default function ProductCard({ produto }) {
             className="object-cover transition duration-300 group-hover:scale-105"
             onError={() => setImgSrc("/logo.png")}
           />
-          {desconto ? (
-            <span className="absolute left-3 top-3 rounded-full bg-cc-ink/85 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
-              -{desconto}%
-            </span>
-          ) : null}
+          <div className="absolute left-3 top-3 flex flex-col items-start gap-1.5">
+            {desconto ? (
+              <span className="rounded-full bg-cc-ink/85 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
+                -{desconto}%
+              </span>
+            ) : null}
+            {ehPopular ? (
+              <span className="rounded-full bg-cc-yellow px-2.5 py-1 text-[11px] font-semibold text-cc-ink backdrop-blur">
+                🔥 Popular
+              </span>
+            ) : null}
+          </div>
           <span className="absolute bottom-3 right-3">
             <PlatformBadge plataforma={produto.plataforma} />
           </span>

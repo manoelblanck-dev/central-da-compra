@@ -9,6 +9,8 @@ import ImagemProduto from "@/components/ImagemProduto";
 import LinkOferta from "@/components/LinkOferta";
 import CupomBox from "@/components/CupomBox";
 import BotaoFavorito from "@/components/BotaoFavorito";
+import RegistrarVisita from "@/components/RegistrarVisita";
+import VistosRecentemente from "@/components/VistosRecentemente";
 
 export const dynamic = "force-dynamic";
 
@@ -126,6 +128,7 @@ export default async function ProdutoPage({ params }) {
         // e injetar HTML/JS (ex.: "</script><script>...").
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }}
       />
+      <RegistrarVisita id={produto.id} />
       {/* migalhas */}
       <nav className="mb-4 text-sm text-cc-muted">
         <Link href="/" className="hover:text-cc-ink">Início</Link>
@@ -247,6 +250,9 @@ export default async function ProdutoPage({ params }) {
           <ProductGrid produtos={relacionados} />
         </section>
       ) : null}
+
+      {/* vistos recentemente (não mostra o produto atual) */}
+      <VistosRecentemente excluir={produto.id} />
     </div>
   );
 }
