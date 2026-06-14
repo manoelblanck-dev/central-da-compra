@@ -122,7 +122,9 @@ export default async function ProdutoPage({ params }) {
     <div className="mx-auto max-w-6xl px-4 py-6">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        // Escapa "<" para que nome/descrição não possam fechar a tag <script>
+        // e injetar HTML/JS (ex.: "</script><script>...").
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }}
       />
       {/* migalhas */}
       <nav className="mb-4 text-sm text-cc-muted">

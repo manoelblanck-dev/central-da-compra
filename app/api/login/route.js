@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { tokenSessao } from "@/lib/auth";
+import { tokenSessao, hashTexto } from "@/lib/auth";
 
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -25,7 +25,17 @@ export async function POST(request) {
   // Usuário esperado: vem de ADMIN_USER. Se não existir, o padrão é "admin".
   const usuarioEsperado = process.env.ADMIN_USER || "admin";
 
-  if (usuario === usuarioEsperado && senha === process.env.ADMIN_PASSWORD) {
+  // Compara os hashes (tamanho fixo) em vez do texto digitado: o tempo de
+  // resposta não varia conforme o tamanho do que foi digitado, dificultando
+  // ataques de timing.
+  const [hashUsuario, hashUsuarioEsperado, hashSenha, hashSenhaEsperada] = await Promise.all([
+    hashTexto(usuario),
+    hashTexto(usuarioEsperado),
+    hashTexto(senha),
+    hashTexto(process.env.ADMIN_PASSWORD),
+  ]);
+
+  if (hashUsuario === hashUsuarioEsperado && hashSenha === hashSenhaEsperada) {
     const res = NextResponse.json({ ok: true });
     res.cookies.set("cc_admin", await tokenSessao(), {
       httpOnly: true,

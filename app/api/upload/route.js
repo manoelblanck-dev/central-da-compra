@@ -40,8 +40,11 @@ export async function POST(request) {
     );
   }
 
-  // Gera um nome único pro arquivo
-  const ext = (file.name?.split(".").pop() || "jpg").toLowerCase();
+  // Gera um nome único pro arquivo. A extensão só pode ser uma destas
+  // (evita que um nome de arquivo malicioso crie subpastas no bucket).
+  const EXTENSOES_PERMITIDAS = ["jpg", "jpeg", "png", "webp", "gif"];
+  const extEnviada = (file.name?.split(".").pop() || "").toLowerCase();
+  const ext = EXTENSOES_PERMITIDAS.includes(extEnviada) ? extEnviada : "jpg";
   const nome = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
   const bytes = Buffer.from(await file.arrayBuffer());
