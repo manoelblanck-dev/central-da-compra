@@ -3,7 +3,14 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { CATEGORIAS, PLATAFORMAS, formatarPreco, nomeCategoria, detectarPlataforma } from "@/lib/constantes";
+import {
+  CATEGORIAS,
+  PLATAFORMAS,
+  formatarPreco,
+  nomeCategoria,
+  detectarPlataforma,
+  normalizarPlataforma,
+} from "@/lib/constantes";
 
 const PRODUTO_VAZIO = {
   nome: "",
@@ -689,7 +696,7 @@ function FormLote({ fechar, aoConcluir }) {
           preco: preco || "",
           link_afiliado: link || "",
           categoria: categoria || "outros",
-          plataforma: plataforma || detectarPlataforma(link) || "shopee",
+          plataforma: normalizarPlataforma(plataforma) || detectarPlataforma(link) || "shopee",
         };
       });
   }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { tokenSessao } from "@/lib/auth";
+import { detectarPlataforma, normalizarPlataforma } from "@/lib/constantes";
 
 async function autorizado(request) {
   const cookie = request.cookies.get("cc_admin")?.value;
@@ -58,7 +59,7 @@ export async function POST(request) {
       preco_antigo: numero(item.preco_antigo),
       imagem_url: item.imagem_url ? item.imagem_url.toString().trim() : null,
       link_afiliado: link,
-      plataforma: item.plataforma || "shopee",
+      plataforma: normalizarPlataforma(item.plataforma) || detectarPlataforma(link) || "shopee",
       categoria: item.categoria || "outros",
       destaque: !!item.destaque,
     });
