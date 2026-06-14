@@ -14,8 +14,16 @@ function BandeiraBrasil() {
   );
 }
 
-export default function CategoryCarousel() {
+export default function CategoryCarousel({ disponiveis = null }) {
   const trackRef = useRef(null);
+
+  // Se receber a lista de categorias com produtos, mostra só essas (esconde
+  // as vazias). Sem a lista (null), mostra todas — comportamento antigo.
+  const lista = disponiveis
+    ? CATEGORIAS.filter((c) => disponiveis.includes(c.slug))
+    : CATEGORIAS;
+
+  if (lista.length === 0) return null;
 
   function rola(dir) {
     const t = trackRef.current;
@@ -47,7 +55,7 @@ export default function CategoryCarousel() {
       </div>
 
       <div ref={trackRef} className="no-scrollbar flex gap-2.5 overflow-x-auto scroll-smooth pb-1">
-        {CATEGORIAS.map((c) => {
+        {lista.map((c) => {
           const copa = !!c.copa;
           const video = !!c.video;
           return (

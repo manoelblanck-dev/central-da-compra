@@ -203,7 +203,7 @@ export default async function ProdutoPage({ params }) {
           {(produto.nota || produto.cliques > 0) ? (
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
               {produto.nota ? <Estrelas nota={produto.nota} avaliacoes={produto.avaliacoes} /> : null}
-              {produto.cliques > 5 ? (
+              {produto.cliques >= 30 ? (
                 <span className="text-xs text-cc-muted">
                   {produto.cliques} pessoas já viram esta oferta
                 </span>

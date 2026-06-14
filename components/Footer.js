@@ -1,8 +1,13 @@
 import Link from "next/link";
 import { CATEGORIAS } from "@/lib/constantes";
 import BotaoWhatsApp from "@/components/BotaoWhatsApp";
+import { getCategoriasComProdutos } from "@/lib/categoriasDisponiveis";
 
-export default function Footer() {
+export default async function Footer() {
+  // Mostra no rodapé só as categorias que têm produtos (esconde as vazias).
+  const disponiveis = await getCategoriasComProdutos();
+  const categorias = CATEGORIAS.filter((c) => disponiveis.includes(c.slug));
+
   return (
     <footer className="mt-16 border-t border-cc-line bg-cc-cream/60">
       <div className="mx-auto max-w-6xl px-4 py-10">
@@ -25,18 +30,20 @@ export default function Footer() {
             <BotaoWhatsApp variante="botao" className="mt-4" />
           </div>
 
-          <div>
-            <p className="mb-3 text-sm font-semibold text-cc-ink">Categorias</p>
-            <ul className="grid grid-cols-2 gap-x-8 gap-y-1.5 text-sm text-cc-muted">
-              {CATEGORIAS.map((c) => (
-                <li key={c.slug}>
-                  <Link href={`/categoria/${c.slug}`} className="hover:text-cc-ink">
-                    {c.nome}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {categorias.length > 0 ? (
+            <div>
+              <p className="mb-3 text-sm font-semibold text-cc-ink">Categorias</p>
+              <ul className="grid grid-cols-2 gap-x-8 gap-y-1.5 text-sm text-cc-muted">
+                {categorias.map((c) => (
+                  <li key={c.slug}>
+                    <Link href={`/categoria/${c.slug}`} className="hover:text-cc-ink">
+                      {c.nome}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
 
         <div className="mt-8 border-t border-cc-line pt-5 text-xs text-cc-muted">

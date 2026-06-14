@@ -8,6 +8,7 @@ import VistosRecentemente from "@/components/VistosRecentemente";
 import BotaoWhatsApp from "@/components/BotaoWhatsApp";
 import OfertaDoDia from "@/components/OfertaDoDia";
 import FaixaConfianca from "@/components/FaixaConfianca";
+import { getCategoriasComProdutos } from "@/lib/categoriasDisponiveis";
 import { IconEscudo, IconLojaOficial, IconRapido } from "@/components/IconesSelo";
 
 // Cache inteligente (ISR): a página é servida do cache (rápida) e atualizada
@@ -86,14 +87,26 @@ async function getCupons() {
 
 export default async function Home() {
   // Os blocos são independentes — busca tudo em paralelo.
-  const [{ ofertas, recentes, clicados }, jogo, cupons, ofertaDoDia, totalProdutos] =
-    await Promise.all([
-      getProdutos(),
-      getProximoJogo(),
-      getCupons(),
-      getOfertaDoDia(),
-      getTotalProdutos(),
-    ]);
+  const [
+    { ofertas, recentes, clicados },
+    jogo,
+    cupons,
+    ofertaDoDia,
+    totalProdutos,
+    categoriasDisp,
+  ] = await Promise.all([
+    getProdutos(),
+    getProximoJogo(),
+    getCupons(),
+    getOfertaDoDia(),
+    getTotalProdutos(),
+    getCategoriasComProdutos(),
+  ]);
+
+  // Catálogo pequeno: evita mostrar os mesmos produtos repetidos em 3 seções.
+  // Mostra uma única seção "Ofertas" com tudo. Quando crescer, volta a separar
+  // em "Ofertas da Semana", "Mais procurados" e "Novidades".
+  const poucosProdutos = totalProdutos <= 8;
 
   return (
     <div className="mx-auto max-w-6xl px-4">
@@ -143,57 +156,71 @@ export default async function Home() {
       {/* Próximo jogo do Brasil (só aparece se houver jogo cadastrado) */}
       <ProximoJogo jogo={jogo} />
 
-      {/* CATEGORIAS (carrossel) */}
-      <section className="mt-10">
-        <CategoryCarousel />
-      </section>
+      {/* CATEGORIAS (carrossel) — só aparece se houver categorias com produtos */}
+      {categoriasDisp.length > 0 ? (
+        <section className="mt-10">
+          <CategoryCarousel disponiveis={categoriasDisp} />
+        </section>
+      ) : null}
 
       {/* Faixa de confiança (números reais que reforçam credibilidade) */}
       <FaixaConfianca totalProdutos={totalProdutos} />
 
-      {/* OFERTAS DA SEMANA */}
-      <section className="mt-12">
-        <div className="mb-4 flex items-end justify-between">
-          <h2 className="text-2xl font-semibold tracking-tight text-cc-ink">
-            Ofertas da <span className="serif-accent text-[1.15em]">Semana</span>
-          </h2>
-        </div>
-        <ProductGrid
-          produtos={ofertas}
-          vazio="Marque produtos como “destaque” no painel admin para eles aparecerem aqui."
-        />
-        {ofertas.length > 0 ? (
-          <div className="mt-6 text-center">
-            <Link
-              href="/ofertas"
-              className="inline-block rounded-xl bg-cc-ink px-6 py-3 text-sm font-semibold text-white transition hover:bg-black active:translate-y-px"
-            >
-              Ver todas as ofertas →
-            </Link>
-          </div>
-        ) : null}
-      </section>
-
-      {/* MAIS CLICADOS */}
-      {clicados.length > 0 ? (
-        <section className="mt-14">
+      {poucosProdutos ? (
+        /* Catálogo pequeno: uma seção única, sem repetir os mesmos produtos */
+        <section className="mt-12">
           <h2 className="mb-4 text-2xl font-semibold tracking-tight text-cc-ink">
-            Os mais <span className="serif-accent text-[1.15em]">procurados</span>
+            Nossas <span className="serif-accent text-[1.15em]">ofertas</span>
           </h2>
-          <ProductGrid produtos={clicados} />
+          <ProductGrid
+            produtos={recentes}
+            vazio="Cadastre seu primeiro produto no painel admin para começar."
+          />
         </section>
-      ) : null}
+      ) : (
+        <>
+          {/* OFERTAS DA SEMANA */}
+          <section className="mt-12">
+            <div className="mb-4 flex items-end justify-between">
+              <h2 className="text-2xl font-semibold tracking-tight text-cc-ink">
+                Ofertas da <span className="serif-accent text-[1.15em]">Semana</span>
+              </h2>
+            </div>
+            <ProductGrid
+              produtos={ofertas}
+              vazio="Marque produtos como “destaque” no painel admin para eles aparecerem aqui."
+            />
+            {ofertas.length > 0 ? (
+              <div className="mt-6 text-center">
+                <Link
+                  href="/ofertas"
+                  className="inline-block rounded-xl bg-cc-ink px-6 py-3 text-sm font-semibold text-white transition hover:bg-black active:translate-y-px"
+                >
+                  Ver todas as ofertas →
+                </Link>
+              </div>
+            ) : null}
+          </section>
 
-      {/* NOVIDADES */}
-      <section className="mt-14">
-        <h2 className="mb-4 text-2xl font-semibold tracking-tight text-cc-ink">
-          <span className="serif-accent text-[1.15em]">Novidades</span>
-        </h2>
-        <ProductGrid
-          produtos={recentes}
-          vazio="Cadastre seu primeiro produto no painel admin para começar."
-        />
-      </section>
+          {/* MAIS CLICADOS — só com volume suficiente pra não repetir poucos itens */}
+          {clicados.length >= 4 ? (
+            <section className="mt-14">
+              <h2 className="mb-4 text-2xl font-semibold tracking-tight text-cc-ink">
+                Os mais <span className="serif-accent text-[1.15em]">procurados</span>
+              </h2>
+              <ProductGrid produtos={clicados} />
+            </section>
+          ) : null}
+
+          {/* NOVIDADES */}
+          <section className="mt-14">
+            <h2 className="mb-4 text-2xl font-semibold tracking-tight text-cc-ink">
+              <span className="serif-accent text-[1.15em]">Novidades</span>
+            </h2>
+            <ProductGrid produtos={recentes} />
+          </section>
+        </>
+      )}
     </div>
   );
 }

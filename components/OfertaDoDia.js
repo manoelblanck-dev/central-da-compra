@@ -23,19 +23,23 @@ function Relogio() {
     return () => clearInterval(t);
   }, []);
 
-  // Evita diferença entre servidor e navegador (hidratação).
-  const p = (x) => String(Math.max(0, x)).padStart(2, "0");
-  let h = 0,
-    m = 0,
-    s = 0;
-  if (ms !== null && ms > 0) {
-    let d = ms;
-    h = Math.floor(d / 3600000);
-    d -= h * 3600000;
-    m = Math.floor(d / 60000);
-    d -= m * 60000;
-    s = Math.floor(d / 1000);
+  // Antes de o navegador calcular (e na renderização do servidor), mostra um
+  // placeholder em vez de "00:00:00" — que parece um timer quebrado/zerado.
+  if (ms === null) {
+    return (
+      <span className="cc-mono tabular-nums text-base font-semibold text-cc-muted">
+        --:--:--
+      </span>
+    );
   }
+
+  const p = (x) => String(Math.max(0, x)).padStart(2, "0");
+  let d = Math.max(0, ms);
+  const h = Math.floor(d / 3600000);
+  d -= h * 3600000;
+  const m = Math.floor(d / 60000);
+  d -= m * 60000;
+  const s = Math.floor(d / 1000);
 
   return (
     <span className="cc-mono tabular-nums text-base font-semibold text-cc-ink">
