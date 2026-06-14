@@ -37,6 +37,7 @@ export default function AdminPage() {
   const [selecionados, setSelecionados] = useState([]); // ids marcados na tabela
   const [excluindoLote, setExcluindoLote] = useState(false);
   const [atualizandoImagens, setAtualizandoImagens] = useState(false);
+  const [aba, setAba] = useState("produtos"); // produtos | cupons | jogo
 
   const carregar = useCallback(async () => {
     setCarregando(true);
@@ -181,35 +182,14 @@ export default function AdminPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="cc-mono text-3xl text-cc-ink">Painel</h1>
-          <p className="text-sm text-cc-muted">Gerencie os produtos da loja</p>
+          <p className="text-sm text-cc-muted">Gerencie a loja</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={novo}
-            className="bg-cc-yellow px-5 py-2.5 text-sm font-bold text-cc-ink transition hover:bg-cc-yellow-dark"
-          >
-            + Novo produto
-          </button>
-          <button
-            onClick={() => { setErro(""); setLote(true); }}
-            className="border border-cc-line px-4 py-2.5 text-sm font-medium text-cc-ink transition hover:bg-cc-cream"
-          >
-            + Adicionar vários
-          </button>
-          <button
-            onClick={atualizarImagensML}
-            disabled={atualizandoImagens}
-            className="border border-cc-line px-4 py-2.5 text-sm font-medium text-cc-ink transition hover:bg-cc-cream disabled:opacity-60"
-          >
-            {atualizandoImagens ? "Atualizando imagens..." : "🖼️ Atualizar imagens (Mercado Livre)"}
-          </button>
-          <button
-            onClick={sair}
-            className="border border-cc-line px-4 py-2.5 text-sm font-medium text-cc-muted transition hover:text-cc-ink"
-          >
-            Sair
-          </button>
-        </div>
+        <button
+          onClick={sair}
+          className="border border-cc-line px-4 py-2.5 text-sm font-medium text-cc-muted transition hover:text-cc-ink"
+        >
+          Sair
+        </button>
       </div>
 
       {/* métricas */}
@@ -219,120 +199,161 @@ export default function AdminPage() {
         <Metrica rotulo="Cliques em ofertas" valor={totalCliques} />
       </div>
 
-      {/* próximo jogo do Brasil */}
-      <SecaoProximoJogo />
+      {/* abas */}
+      <div className="mt-6 flex gap-1 border-b border-cc-line">
+        <AbaBotao ativo={aba === "produtos"} onClick={() => setAba("produtos")}>
+          📦 Produtos
+        </AbaBotao>
+        <AbaBotao ativo={aba === "cupons"} onClick={() => setAba("cupons")}>
+          🎟️ Cupons
+        </AbaBotao>
+        <AbaBotao ativo={aba === "jogo"} onClick={() => setAba("jogo")}>
+          ⚽ Próximo jogo
+        </AbaBotao>
+      </div>
 
-      {/* cupons por plataforma */}
-      <SecaoCupons />
-
-      {/* ações em lote */}
-      {selecionados.length > 0 ? (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5">
-          <p className="text-sm text-red-700">
-            {selecionados.length} produto(s) selecionado(s)
-          </p>
-          <div className="flex gap-2">
+      {/* aba: produtos */}
+      {aba === "produtos" ? (
+        <div className="mt-4">
+          {/* ações de produto */}
+          <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => setSelecionados([])}
-              className="rounded-lg border border-cc-line bg-white px-3 py-1.5 text-xs font-medium text-cc-ink hover:bg-cc-cream"
+              onClick={novo}
+              className="bg-cc-yellow px-5 py-2.5 text-sm font-bold text-cc-ink transition hover:bg-cc-yellow-dark"
             >
-              Limpar seleção
+              + Novo produto
             </button>
             <button
-              onClick={excluirSelecionados}
-              disabled={excluindoLote}
-              className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+              onClick={() => { setErro(""); setLote(true); }}
+              className="border border-cc-line px-4 py-2.5 text-sm font-medium text-cc-ink transition hover:bg-cc-cream"
             >
-              {excluindoLote ? "Excluindo..." : "Excluir selecionados"}
+              + Adicionar vários
             </button>
+            <button
+              onClick={atualizarImagensML}
+              disabled={atualizandoImagens}
+              className="border border-cc-line px-4 py-2.5 text-sm font-medium text-cc-ink transition hover:bg-cc-cream disabled:opacity-60"
+            >
+              {atualizandoImagens ? "Atualizando imagens..." : "🖼️ Atualizar imagens (Mercado Livre)"}
+            </button>
+          </div>
+
+          {/* ações em lote */}
+          {selecionados.length > 0 ? (
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5">
+              <p className="text-sm text-red-700">
+                {selecionados.length} produto(s) selecionado(s)
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setSelecionados([])}
+                  className="rounded-lg border border-cc-line bg-white px-3 py-1.5 text-xs font-medium text-cc-ink hover:bg-cc-cream"
+                >
+                  Limpar seleção
+                </button>
+                <button
+                  onClick={excluirSelecionados}
+                  disabled={excluindoLote}
+                  className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+                >
+                  {excluindoLote ? "Excluindo..." : "Excluir selecionados"}
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {/* tabela */}
+          <div className="mt-4 overflow-hidden border border-cc-line bg-white">
+            {carregando ? (
+              <p className="px-4 py-10 text-center text-sm text-cc-muted">Carregando...</p>
+            ) : produtos.length === 0 ? (
+              <p className="px-4 py-10 text-center text-sm text-cc-muted">
+                Nenhum produto ainda. Clique em “Novo produto” para começar.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="border-b border-cc-line bg-cc-cream/60 text-xs uppercase tracking-wide text-cc-muted">
+                    <tr>
+                      <th className="w-10 px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={produtos.length > 0 && selecionados.length === produtos.length}
+                          onChange={toggleTodos}
+                          className="h-4 w-4 accent-cc-yellow"
+                          aria-label="Selecionar todos"
+                        />
+                      </th>
+                      <th className="px-4 py-3 font-medium">Produto</th>
+                      <th className="px-4 py-3 font-medium">Categoria</th>
+                      <th className="px-4 py-3 font-medium">Preço</th>
+                      <th className="px-4 py-3 font-medium">Cliques</th>
+                      <th className="px-4 py-3 font-medium text-right">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {produtos.map((p) => (
+                      <tr key={p.id} className="border-b border-cc-line last:border-0">
+                        <td className="px-4 py-3">
+                          <input
+                            type="checkbox"
+                            checked={selecionados.includes(p.id)}
+                            onChange={() => toggleSelecionado(p.id)}
+                            className="h-4 w-4 accent-cc-yellow"
+                            aria-label={`Selecionar ${p.nome}`}
+                          />
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={p.imagem_url || "https://placehold.co/80x80/FFF8EC/211C15?text=CC"}
+                              alt=""
+                              className="h-10 w-10 shrink-0 rounded-lg object-cover"
+                            />
+                            <div className="min-w-0">
+                              <p className="truncate font-medium text-cc-ink">{p.nome}</p>
+                              <p className="text-xs text-cc-muted">
+                                {PLATAFORMAS.find((x) => x.id === p.plataforma)?.nome || p.plataforma}
+                                {p.destaque ? " · ⭐ destaque" : ""}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-cc-muted">{nomeCategoria(p.categoria)}</td>
+                        <td className="px-4 py-3 text-cc-ink">{formatarPreco(p.preco) || "—"}</td>
+                        <td className="px-4 py-3 text-cc-muted">{p.cliques || 0}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => editar(p)}
+                              className="rounded-lg border border-cc-line px-3 py-1.5 text-xs font-medium text-cc-ink hover:bg-cc-cream"
+                            >
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => excluir(p)}
+                              className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                            >
+                              Excluir
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       ) : null}
 
-      {/* tabela */}
-      <div className="mt-6 overflow-hidden border border-cc-line bg-white">
-        {carregando ? (
-          <p className="px-4 py-10 text-center text-sm text-cc-muted">Carregando...</p>
-        ) : produtos.length === 0 ? (
-          <p className="px-4 py-10 text-center text-sm text-cc-muted">
-            Nenhum produto ainda. Clique em “Novo produto” para começar.
-          </p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-cc-line bg-cc-cream/60 text-xs uppercase tracking-wide text-cc-muted">
-                <tr>
-                  <th className="w-10 px-4 py-3">
-                    <input
-                      type="checkbox"
-                      checked={produtos.length > 0 && selecionados.length === produtos.length}
-                      onChange={toggleTodos}
-                      className="h-4 w-4 accent-cc-yellow"
-                      aria-label="Selecionar todos"
-                    />
-                  </th>
-                  <th className="px-4 py-3 font-medium">Produto</th>
-                  <th className="px-4 py-3 font-medium">Categoria</th>
-                  <th className="px-4 py-3 font-medium">Preço</th>
-                  <th className="px-4 py-3 font-medium">Cliques</th>
-                  <th className="px-4 py-3 font-medium text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {produtos.map((p) => (
-                  <tr key={p.id} className="border-b border-cc-line last:border-0">
-                    <td className="px-4 py-3">
-                      <input
-                        type="checkbox"
-                        checked={selecionados.includes(p.id)}
-                        onChange={() => toggleSelecionado(p.id)}
-                        className="h-4 w-4 accent-cc-yellow"
-                        aria-label={`Selecionar ${p.nome}`}
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={p.imagem_url || "https://placehold.co/80x80/FFF8EC/211C15?text=CC"}
-                          alt=""
-                          className="h-10 w-10 shrink-0 rounded-lg object-cover"
-                        />
-                        <div className="min-w-0">
-                          <p className="truncate font-medium text-cc-ink">{p.nome}</p>
-                          <p className="text-xs text-cc-muted">
-                            {PLATAFORMAS.find((x) => x.id === p.plataforma)?.nome || p.plataforma}
-                            {p.destaque ? " · ⭐ destaque" : ""}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-cc-muted">{nomeCategoria(p.categoria)}</td>
-                    <td className="px-4 py-3 text-cc-ink">{formatarPreco(p.preco) || "—"}</td>
-                    <td className="px-4 py-3 text-cc-muted">{p.cliques || 0}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => editar(p)}
-                          className="rounded-lg border border-cc-line px-3 py-1.5 text-xs font-medium text-cc-ink hover:bg-cc-cream"
-                        >
-                          Editar
-                        </button>
-                        <button
-                          onClick={() => excluir(p)}
-                          className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
-                        >
-                          Excluir
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      {/* aba: cupons */}
+      {aba === "cupons" ? <SecaoCupons /> : null}
+
+      {/* aba: próximo jogo */}
+      {aba === "jogo" ? <SecaoProximoJogo /> : null}
 
       {/* formulário (modal) */}
       {form ? (
@@ -366,6 +387,21 @@ function Metrica({ rotulo, valor }) {
       <p className="cc-mono text-3xl text-cc-ink">{valor}</p>
       <p className="text-xs text-cc-muted">{rotulo}</p>
     </div>
+  );
+}
+
+function AbaBotao({ ativo, onClick, children }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition ${
+        ativo
+          ? "border-cc-yellow text-cc-ink"
+          : "border-transparent text-cc-muted hover:text-cc-ink"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -867,7 +903,7 @@ function SecaoProximoJogo() {
   const rotulo = "mb-1 block text-sm font-medium text-cc-ink";
 
   return (
-    <div className="mt-6 border border-cc-line bg-white p-5">
+    <div className="mt-4 border border-cc-line bg-white p-5">
       <h2 className="cc-mono text-xl text-cc-ink">⚽ Próximo jogo do Brasil</h2>
       <p className="mt-1 text-xs text-cc-muted">
         Aparece num banner na home, com contagem regressiva. Deixe sem adversário/data
@@ -1008,7 +1044,7 @@ function SecaoCupons() {
   const rotulo = "mb-1 block text-sm font-medium text-cc-ink";
 
   return (
-    <div className="mt-6 border border-cc-line bg-white p-5">
+    <div className="mt-4 border border-cc-line bg-white p-5">
       <h2 className="cc-mono text-xl text-cc-ink">🎟️ Cupons ativos</h2>
       <p className="mt-1 text-xs text-cc-muted">
         Cadastre quantos cupons quiser. Eles aparecem automaticamente nos produtos da
