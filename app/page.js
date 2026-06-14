@@ -11,26 +11,27 @@ import { IconEscudo, IconLojaOficial, IconRapido } from "@/components/IconesSelo
 export const dynamic = "force-dynamic";
 
 async function getProdutos() {
-  const { data: ofertas } = await supabase
-    .from("produtos")
-    .select("*")
-    .eq("destaque", true)
-    .order("criado_em", { ascending: false })
-    .limit(8);
-
-  const { data: recentes } = await supabase
-    .from("produtos")
-    .select("*")
-    .order("criado_em", { ascending: false })
-    .limit(12);
-
-  // Mais clicados (usa o contador de cliques que já coletamos)
-  const { data: clicados } = await supabase
-    .from("produtos")
-    .select("*")
-    .gt("cliques", 0)
-    .order("cliques", { ascending: false })
-    .limit(8);
+  // As 3 consultas são independentes — roda em paralelo (mais rápido que em fila).
+  const [{ data: ofertas }, { data: recentes }, { data: clicados }] = await Promise.all([
+    supabase
+      .from("produtos")
+      .select("*")
+      .eq("destaque", true)
+      .order("criado_em", { ascending: false })
+      .limit(8),
+    supabase
+      .from("produtos")
+      .select("*")
+      .order("criado_em", { ascending: false })
+      .limit(12),
+    // Mais clicados (usa o contador de cliques que já coletamos)
+    supabase
+      .from("produtos")
+      .select("*")
+      .gt("cliques", 0)
+      .order("cliques", { ascending: false })
+      .limit(8),
+  ]);
 
   return {
     ofertas: ofertas || [],
@@ -58,9 +59,12 @@ async function getCupons() {
 }
 
 export default async function Home() {
-  const { ofertas, recentes, clicados } = await getProdutos();
-  const jogo = await getProximoJogo();
-  const cupons = await getCupons();
+  // Os 3 blocos são independentes — busca tudo em paralelo.
+  const [{ ofertas, recentes, clicados }, jogo, cupons] = await Promise.all([
+    getProdutos(),
+    getProximoJogo(),
+    getCupons(),
+  ]);
 
   return (
     <div className="mx-auto max-w-6xl px-4">

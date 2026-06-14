@@ -11,6 +11,7 @@ import CupomBox from "@/components/CupomBox";
 import BotaoFavorito from "@/components/BotaoFavorito";
 import RegistrarVisita from "@/components/RegistrarVisita";
 import VistosRecentemente from "@/components/VistosRecentemente";
+import BarraComprarMobile from "@/components/BarraComprarMobile";
 import { IconEscudo, IconLojaOficial, IconRapido } from "@/components/IconesSelo";
 
 export const dynamic = "force-dynamic";
@@ -82,7 +83,12 @@ export default async function ProdutoPage({ params }) {
   const produto = await getProduto(params.id);
   if (!produto) notFound();
 
-  const relacionados = await getRelacionados(produto.categoria, produto.id);
+  // Relacionados e cupom não dependem um do outro — busca em paralelo.
+  const [relacionados, cupom] = await Promise.all([
+    getRelacionados(produto.categoria, produto.id),
+    getCupomPlataforma(produto.plataforma, produto.preco),
+  ]);
+
   const preco = formatarPreco(produto.preco);
   const precoAntigo = formatarPreco(produto.preco_antigo);
   const temDesconto =
@@ -91,9 +97,6 @@ export default async function ProdutoPage({ params }) {
   const urlProduto = `https://centraldacompraonline.com.br/produto/${produto.id}`;
   const msgWpp = `Olha essa oferta na Central da Compra 👇\n${produto.nome}\n${urlProduto}`;
   const wpp = `https://wa.me/?text=${encodeURIComponent(msgWpp)}`;
-
-  // cupom da plataforma deste produto (se houver cadastrado no painel)
-  const cupom = await getCupomPlataforma(produto.plataforma, produto.preco);
 
   // Dados estruturados (Google pode exibir preço e estrelas no resultado)
   const schema = {
@@ -254,6 +257,16 @@ export default async function ProdutoPage({ params }) {
 
       {/* vistos recentemente (não mostra o produto atual) */}
       <VistosRecentemente excluir={produto.id} />
+
+      {/* espaçador pra a barra fixa do mobile não tampar o conteúdo final */}
+      <div className="h-20 md:hidden" />
+
+      {/* barra fixa "Ver Oferta" — só no celular */}
+      <BarraComprarMobile
+        id={produto.id}
+        preco={produto.preco}
+        precoAntigo={produto.preco_antigo}
+      />
     </div>
   );
 }
