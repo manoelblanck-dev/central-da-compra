@@ -842,6 +842,7 @@ function SecaoCupons() {
   const [msg, setMsg] = useState("");
   const [novo, setNovo] = useState({ plataforma: "shopee", codigo: "", descricao: "", validade: "", minimo: "" });
   const [loteCupom, setLoteCupom] = useState(false);
+  const [selecionados, setSelecionados] = useState([]); // índices marcados na lista
 
   const carregar = useCallback(async () => {
     try {
@@ -894,6 +895,22 @@ function SecaoCupons() {
 
   function remover(i) {
     persistir(lista.filter((_, idx) => idx !== i));
+    setSelecionados((sel) => sel.filter((idx) => idx !== i).map((idx) => (idx > i ? idx - 1 : idx)));
+  }
+
+  function toggleSelecionado(i) {
+    setSelecionados((sel) => (sel.includes(i) ? sel.filter((x) => x !== i) : [...sel, i]));
+  }
+
+  function toggleTodos() {
+    setSelecionados((sel) => (sel.length === lista.length ? [] : lista.map((_, idx) => idx)));
+  }
+
+  async function removerSelecionados() {
+    if (selecionados.length === 0) return;
+    if (!confirm(`Remover ${selecionados.length} cupom(ns) selecionado(s)?`)) return;
+    await persistir(lista.filter((_, idx) => !selecionados.includes(idx)));
+    setSelecionados([]);
   }
 
   const nomePlat = (id) =>
@@ -916,26 +933,64 @@ function SecaoCupons() {
       ) : (
         <div className="mt-4 space-y-4">
           {lista.length > 0 ? (
-            <div className="divide-y divide-cc-line border border-cc-line">
-              {lista.map((c, i) => (
-                <div key={i} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
-                  <div>
-                    <span className="font-semibold text-cc-ink">{nomePlat(c.plataforma)}</span>{" "}
-                    — <span className="cc-mono">{c.codigo}</span>
-                    {c.descricao ? <span className="text-cc-muted"> · {c.descricao}</span> : ""}
-                    {c.minimo ? <span className="text-cc-muted"> · mín. R${c.minimo}</span> : ""}
-                    {c.validade ? <span className="text-cc-muted"> · até {c.validade}</span> : ""}
+            <>
+              {/* ações em lote */}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label className="flex items-center gap-2 text-xs font-medium text-cc-ink">
+                  <input
+                    type="checkbox"
+                    checked={selecionados.length === lista.length}
+                    onChange={toggleTodos}
+                    className="h-4 w-4 accent-cc-yellow"
+                  />
+                  Selecionar todos
+                </label>
+                {selecionados.length > 0 ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-red-700">
+                      {selecionados.length} selecionado(s)
+                    </span>
+                    <button
+                      onClick={removerSelecionados}
+                      disabled={salvando}
+                      className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+                    >
+                      Remover selecionados
+                    </button>
                   </div>
-                  <button
-                    onClick={() => remover(i)}
-                    disabled={salvando}
-                    className="text-xs font-semibold text-red-600 hover:underline"
-                  >
-                    remover
-                  </button>
-                </div>
-              ))}
-            </div>
+                ) : null}
+              </div>
+
+              <div className="divide-y divide-cc-line border border-cc-line">
+                {lista.map((c, i) => (
+                  <div key={i} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selecionados.includes(i)}
+                        onChange={() => toggleSelecionado(i)}
+                        className="h-4 w-4 accent-cc-yellow"
+                        aria-label={`Selecionar cupom ${c.codigo}`}
+                      />
+                      <div>
+                        <span className="font-semibold text-cc-ink">{nomePlat(c.plataforma)}</span>{" "}
+                        — <span className="cc-mono">{c.codigo}</span>
+                        {c.descricao ? <span className="text-cc-muted"> · {c.descricao}</span> : ""}
+                        {c.minimo ? <span className="text-cc-muted"> · mín. R${c.minimo}</span> : ""}
+                        {c.validade ? <span className="text-cc-muted"> · até {c.validade}</span> : ""}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => remover(i)}
+                      disabled={salvando}
+                      className="text-xs font-semibold text-red-600 hover:underline"
+                    >
+                      remover
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </>
           ) : (
             <p className="text-sm text-cc-muted">Nenhum cupom cadastrado ainda.</p>
           )}
