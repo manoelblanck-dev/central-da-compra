@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { CATEGORIAS, nomeCategoria } from "@/lib/constantes";
 import ProductGrid from "@/components/ProductGrid";
 import SkeletonGrid from "@/components/SkeletonGrid";
+import { IconFiltro } from "@/components/IconesSelo";
 
 const MAXP = 1000; // teto do slider de preço
 const PLATS = [
@@ -192,7 +193,7 @@ export default function ListagemComFiltro({ inicial = [], contexto, porPagina = 
         onClick={() => setDrawer(true)}
         className="mb-4 inline-flex items-center gap-2 rounded-xl bg-cc-ink px-4 py-2.5 text-sm font-semibold text-white md:hidden"
       >
-        ⚙ Filtrar
+        <IconFiltro className="h-4 w-4" /> Filtrar
       </button>
 
       <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-[240px_1fr]">

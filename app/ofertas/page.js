@@ -25,7 +25,7 @@ export default async function OfertasPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="cc-mono text-3xl text-cc-ink">
-        Ofertas da <span className="text-br-green">Semana</span> ⚽
+        Ofertas da <span className="text-br-green">Semana</span>
       </h1>
       <p className="mb-6 mt-1 text-sm text-cc-muted">Seleção atualizada toda semana</p>
       <ListagemComFiltro

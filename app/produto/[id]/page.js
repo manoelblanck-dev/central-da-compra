@@ -11,6 +11,7 @@ import CupomBox from "@/components/CupomBox";
 import BotaoFavorito from "@/components/BotaoFavorito";
 import RegistrarVisita from "@/components/RegistrarVisita";
 import VistosRecentemente from "@/components/VistosRecentemente";
+import { IconEscudo, IconLojaOficial, IconRapido } from "@/components/IconesSelo";
 
 export const dynamic = "force-dynamic";
 
@@ -158,7 +159,7 @@ export default async function ProdutoPage({ params }) {
               {produto.nota ? <Estrelas nota={produto.nota} avaliacoes={produto.avaliacoes} /> : null}
               {produto.cliques > 5 ? (
                 <span className="text-xs text-cc-muted">
-                  👀 {produto.cliques} pessoas já viram esta oferta
+                  {produto.cliques} pessoas já viram esta oferta
                 </span>
               ) : null}
             </div>
@@ -184,7 +185,7 @@ export default async function ProdutoPage({ params }) {
               </span>
             ) : null}
             <p className="mt-2 text-xs text-cc-muted">
-              💡 O preço pode mudar na loja — confira o valor atual na página oficial antes de comprar.
+              O preço pode mudar na loja — confira o valor atual na página oficial antes de comprar.
             </p>
           </div>
 
@@ -216,10 +217,10 @@ export default async function ProdutoPage({ params }) {
           {/* selos de confiança */}
           <div className="mt-4 grid gap-2 rounded-2xl border border-cc-line bg-cc-cream/50 p-4 text-xs text-cc-ink sm:grid-cols-3">
             <span className="flex items-center gap-1.5">
-              <span aria-hidden>✓</span> Redirecionado para a loja oficial
+              <IconLojaOficial className="h-4 w-4 text-br-green" /> Redirecionado para a loja oficial
             </span>
             <span className="flex items-center gap-1.5">
-              <span aria-hidden>🔒</span> Compra segura na{" "}
+              <IconEscudo className="h-4 w-4 text-br-green" /> Compra segura na{" "}
               {produto.plataforma === "mercado_livre"
                 ? "Mercado Livre"
                 : produto.plataforma === "tiktok_shop"
@@ -227,7 +228,7 @@ export default async function ProdutoPage({ params }) {
                 : "Shopee"}
             </span>
             <span className="flex items-center gap-1.5">
-              <span aria-hidden>🙂</span> Sem cadastro
+              <IconRapido className="h-4 w-4 text-br-green" /> Sem cadastro
             </span>
           </div>
 

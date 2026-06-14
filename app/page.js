@@ -5,6 +5,7 @@ import CategoryCarousel from "@/components/CategoryCarousel";
 import ProximoJogo from "@/components/ProximoJogo";
 import CupomStrip from "@/components/CupomStrip";
 import VistosRecentemente from "@/components/VistosRecentemente";
+import { IconEscudo, IconLojaOficial, IconRapido } from "@/components/IconesSelo";
 
 // Sempre buscar dados frescos (produtos recém-cadastrados aparecem na hora).
 export const dynamic = "force-dynamic";
@@ -79,9 +80,18 @@ export default async function Home() {
               Você compra direto na loja oficial, com segurança.
             </p>
             <div className="mt-5 flex flex-wrap gap-x-6 gap-y-1.5 text-[13px] text-cc-muted">
-              <span>🔒 <b className="font-semibold text-cc-ink">Compra 100% segura</b></span>
-              <span>✓ <b className="font-semibold text-cc-ink">Direto na loja oficial</b></span>
-              <span>🙂 <b className="font-semibold text-cc-ink">Sem cadastro</b></span>
+              <span className="inline-flex items-center gap-1.5">
+                <IconEscudo className="h-4 w-4 text-br-green" />
+                <b className="font-semibold text-cc-ink">Compra 100% segura</b>
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <IconLojaOficial className="h-4 w-4 text-br-green" />
+                <b className="font-semibold text-cc-ink">Direto na loja oficial</b>
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <IconRapido className="h-4 w-4 text-br-green" />
+                <b className="font-semibold text-cc-ink">Sem cadastro</b>
+              </span>
             </div>
             <CupomStrip cupons={cupons} />
           </div>
@@ -126,7 +136,7 @@ export default async function Home() {
       {clicados.length > 0 ? (
         <section className="mt-14">
           <h2 className="mb-4 text-2xl font-semibold tracking-tight text-cc-ink">
-            🔥 Os mais <span className="serif-accent text-[1.15em]">clicados</span>
+            Os mais <span className="serif-accent text-[1.15em]">procurados</span>
           </h2>
           <ProductGrid produtos={clicados} />
         </section>

@@ -55,7 +55,7 @@ export default function ProductCard({ produto }) {
             ) : null}
             {ehPopular ? (
               <span className="rounded-full bg-cc-yellow px-2.5 py-1 text-[11px] font-semibold text-cc-ink backdrop-blur">
-                🔥 Popular
+                Mais procurado
               </span>
             ) : null}
           </div>

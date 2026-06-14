@@ -40,7 +40,7 @@ export default function FavoritosPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="mb-1 cc-mono text-3xl text-cc-ink">❤️ Meus favoritos</h1>
+      <h1 className="mb-1 cc-mono text-3xl text-cc-ink">Meus favoritos</h1>
       <p className="mb-6 text-sm text-cc-muted">
         Os produtos que você salvou ficam guardados aqui neste aparelho.
       </p>
