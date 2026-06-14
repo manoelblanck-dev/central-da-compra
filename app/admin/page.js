@@ -29,6 +29,7 @@ export default function AdminPage() {
   const [erro, setErro] = useState("");
   const [selecionados, setSelecionados] = useState([]); // ids marcados na tabela
   const [excluindoLote, setExcluindoLote] = useState(false);
+  const [atualizandoImagens, setAtualizandoImagens] = useState(false);
 
   const carregar = useCallback(async () => {
     setCarregando(true);
@@ -138,6 +139,26 @@ export default function AdminPage() {
     }
   }
 
+  async function atualizarImagensML() {
+    setAtualizandoImagens(true);
+    try {
+      const res = await fetch("/api/produtos/atualizar-imagens", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data.erro || "Não foi possível atualizar as imagens.");
+      } else {
+        alert(
+          `Verificados: ${data.total}\nAtualizados: ${data.atualizados}\nSem dados: ${data.semDados}`
+        );
+        await carregar();
+      }
+    } catch {
+      alert("Erro de conexão.");
+    } finally {
+      setAtualizandoImagens(false);
+    }
+  }
+
   async function sair() {
     await fetch("/api/logout", { method: "POST" });
     router.push("/admin/login");
@@ -167,6 +188,13 @@ export default function AdminPage() {
             className="border border-cc-line px-4 py-2.5 text-sm font-medium text-cc-ink transition hover:bg-cc-cream"
           >
             + Adicionar vários
+          </button>
+          <button
+            onClick={atualizarImagensML}
+            disabled={atualizandoImagens}
+            className="border border-cc-line px-4 py-2.5 text-sm font-medium text-cc-ink transition hover:bg-cc-cream disabled:opacity-60"
+          >
+            {atualizandoImagens ? "Atualizando imagens..." : "🖼️ Atualizar imagens (Mercado Livre)"}
           </button>
           <button
             onClick={sair}
