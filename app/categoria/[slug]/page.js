@@ -29,8 +29,22 @@ export default async function CategoriaPage({ params }) {
 
   const inicial = await getInicial(slug);
 
+  const base = "https://centraldacompraonline.com.br";
+  const schemaBreadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Início", item: base },
+      { "@type": "ListItem", position: 2, name: nomeCategoria(slug), item: `${base}/categoria/${slug}` },
+    ],
+  };
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaBreadcrumb).replace(/</g, "\\u003c") }}
+      />
       <h1 className="mb-6 cc-mono text-3xl text-cc-ink">{nomeCategoria(slug)}</h1>
       <ListagemComFiltro
         inicial={inicial}

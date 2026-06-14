@@ -19,6 +19,40 @@ const inter = Inter({
   display: "swap",
 });
 
+const BASE = "https://centraldacompraonline.com.br";
+
+// Dados estruturados do site (Organização + WebSite com busca interna).
+// Ajudam o Google a entender a marca e podem habilitar a caixa de busca
+// nos resultados.
+const schemaSite = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${BASE}/#organization`,
+      name: "Central da Compra",
+      url: BASE,
+      logo: `${BASE}/logo.png`,
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${BASE}/#website`,
+      url: BASE,
+      name: "Central da Compra",
+      inLanguage: "pt-BR",
+      publisher: { "@id": `${BASE}/#organization` },
+      potentialAction: {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: `${BASE}/busca?q={search_term_string}`,
+        },
+        "query-input": "required name=search_term_string",
+      },
+    },
+  ],
+};
+
 export const metadata = {
   metadataBase: new URL("https://centraldacompraonline.com.br"),
   title: "Central da Compra — As melhores ofertas em um só lugar",
@@ -38,6 +72,12 @@ export default function RootLayout({ children }) {
   return (
     <html lang="pt-BR" className={`${instrument.variable} ${inter.variable}`}>
       <body className="font-sans text-cc-ink bg-white flex min-h-screen flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(schemaSite).replace(/</g, "\\u003c"),
+          }}
+        />
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />

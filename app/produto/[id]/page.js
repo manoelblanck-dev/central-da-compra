@@ -140,6 +140,23 @@ export default async function ProdutoPage({ params }) {
     };
   }
 
+  // Migalhas (Início › Categoria › Produto) para o Google.
+  const base = "https://centraldacompraonline.com.br";
+  const schemaBreadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Início", item: base },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: nomeCategoria(produto.categoria),
+        item: `${base}/categoria/${produto.categoria}`,
+      },
+      { "@type": "ListItem", position: 3, name: produto.nome, item: urlProduto },
+    ],
+  };
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
       <script
@@ -147,6 +164,10 @@ export default async function ProdutoPage({ params }) {
         // Escapa "<" para que nome/descrição não possam fechar a tag <script>
         // e injetar HTML/JS (ex.: "</script><script>...").
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaBreadcrumb).replace(/</g, "\\u003c") }}
       />
       <RegistrarVisita id={produto.id} />
       <PixelProduto
