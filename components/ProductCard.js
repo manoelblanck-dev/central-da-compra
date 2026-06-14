@@ -31,7 +31,7 @@ export default function ProductCard({ produto }) {
   const wpp = `https://wa.me/?text=${encodeURIComponent(msg)}`;
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-cc-line bg-white shadow-card transition duration-200 hover:-translate-y-[3px] hover:shadow-cardlg">
+    <div className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-cc-line bg-white shadow-card transition duration-200 hover:-translate-y-[3px] hover:shadow-cardlg">
       {/* favoritar (sobre a imagem, fora do link) */}
       <div className="absolute right-2.5 top-2.5 z-20">
         <BotaoFavorito id={produto.id} />
