@@ -28,20 +28,26 @@ export default function Header() {
 
         {/* Busca */}
         <form onSubmit={buscar} className="flex flex-1 items-center" role="search">
-          <div className="flex w-full max-w-xl items-center rounded-xl border border-cc-line bg-white pl-4 focus-within:border-cc-yellow focus-within:ring-2 focus-within:ring-cc-yellow/30">
+          <div className="flex w-full max-w-xl items-center rounded-xl border border-cc-line bg-white pl-3 focus-within:border-cc-yellow focus-within:ring-2 focus-within:ring-cc-yellow/30 sm:pl-4">
             <input
               type="search"
               value={termo}
               onChange={(e) => setTermo(e.target.value)}
               placeholder="Buscar produtos..."
               aria-label="Buscar produtos"
-              className="w-full bg-transparent py-2 text-sm outline-none placeholder:text-cc-muted"
+              className="w-full min-w-0 bg-transparent py-2 text-sm outline-none placeholder:text-cc-muted"
             />
+            {/* Em telas estreitas, só o ícone (economiza espaço pro campo de busca) */}
             <button
               type="submit"
-              className="m-1 rounded-lg bg-cc-ink px-4 py-1.5 text-sm font-medium text-white transition hover:bg-black"
+              aria-label="Buscar"
+              className="m-1 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-cc-ink text-white transition hover:bg-black sm:h-auto sm:w-auto sm:px-4 sm:py-1.5"
             >
-              Buscar
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="sm:hidden" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3-3" />
+              </svg>
+              <span className="hidden text-sm font-medium sm:inline">Buscar</span>
             </button>
           </div>
         </form>
