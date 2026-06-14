@@ -176,9 +176,18 @@ export default function AdminPage() {
       if (!res.ok) {
         alert(data.erro || "Não foi possível atualizar os produtos.");
       } else {
-        alert(
-          `Verificados: ${data.total}\nAtualizados: ${data.atualizados}\nSem dados: ${data.semDados}`
-        );
+        let msg = `Verificados: ${data.total}\nAtualizados: ${data.atualizados}`;
+        if (data.bloqueados > 0) {
+          msg += `\nBloqueados pelo Mercado Livre: ${data.bloqueados}`;
+        }
+        if (data.semMudanca > 0) {
+          msg += `\nSem mudanças: ${data.semMudanca}`;
+        }
+        if (data.bloqueados > 0) {
+          msg +=
+            "\n\nO Mercado Livre está bloqueando essas consultas automáticas. Tente atualizar manualmente esses produtos por enquanto.";
+        }
+        alert(msg);
         await carregar();
       }
     } catch {

@@ -19,7 +19,13 @@ export async function POST(request) {
 
   const resultados = await atualizarProdutosML();
   const atualizados = resultados.filter((r) => r.status === "ok").length;
-  const semDados = resultados.length - atualizados;
+  const bloqueados = resultados.filter((r) => r.status === "bloqueado").length;
+  const semMudanca = resultados.filter((r) => r.status === "sem-mudanca").length;
 
-  return NextResponse.json({ total: resultados.length, atualizados, semDados });
+  return NextResponse.json({
+    total: resultados.length,
+    atualizados,
+    bloqueados,
+    semMudanca,
+  });
 }
