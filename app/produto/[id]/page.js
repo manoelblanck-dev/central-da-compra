@@ -12,6 +12,7 @@ import BotaoFavorito from "@/components/BotaoFavorito";
 import RegistrarVisita from "@/components/RegistrarVisita";
 import VistosRecentemente from "@/components/VistosRecentemente";
 import BarraComprarMobile from "@/components/BarraComprarMobile";
+import PixelProduto from "@/components/PixelProduto";
 import { IconEscudo, IconLojaOficial, IconRapido } from "@/components/IconesSelo";
 
 export const dynamic = "force-dynamic";
@@ -133,6 +134,12 @@ export default async function ProdutoPage({ params }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }}
       />
       <RegistrarVisita id={produto.id} />
+      <PixelProduto
+        id={produto.id}
+        nome={produto.nome}
+        preco={produto.preco}
+        categoria={nomeCategoria(produto.categoria)}
+      />
       {/* migalhas */}
       <nav className="mb-4 text-sm text-cc-muted">
         <Link href="/" className="hover:text-cc-ink">Início</Link>

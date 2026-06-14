@@ -32,11 +32,18 @@ export default function PrivacidadePage() {
           privacidade delas. A compra é sempre feita no site da loja parceira, não aqui.
         </p>
 
-        <h2 className="cc-mono text-xl">Cookies</h2>
+        <h2 className="cc-mono text-xl">Cookies e pixels de medição</h2>
         <p>
-          Podemos usar cookies essenciais ao funcionamento do site e de medição de
-          audiência. Você pode desativá-los nas configurações do seu navegador, embora isso
-          possa afetar parte da experiência.
+          Usamos cookies essenciais ao funcionamento do site e, mediante o seu
+          consentimento, ferramentas de medição de audiência e anúncios — incluindo o{" "}
+          <b>Pixel da Meta</b> (Facebook e Instagram) e o <b>Pixel do TikTok</b>. Eles
+          ajudam a entender, de forma agregada, quais ofertas interessam aos visitantes e a
+          exibir anúncios mais relevantes.
+        </p>
+        <p>
+          Esses pixels só são ativados depois que você clica em <b>“Aceitar”</b> no aviso de
+          cookies. Você pode recusar a qualquer momento e também desativar cookies nas
+          configurações do seu navegador, embora isso possa afetar parte da experiência.
         </p>
 
         <h2 className="cc-mono text-xl">Seus direitos</h2>

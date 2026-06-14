@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { rastrearEvento } from "@/lib/pixel";
 
 const KEY = "cc_favoritos";
 
@@ -30,7 +31,8 @@ export default function BotaoFavorito({ id, variante = "card" }) {
     e.preventDefault();
     e.stopPropagation();
     const atual = lerFavs();
-    const novo = atual.includes(id) ? atual.filter((x) => x !== id) : [...atual, id];
+    const adicionou = !atual.includes(id);
+    const novo = adicionou ? [...atual, id] : atual.filter((x) => x !== id);
     try {
       localStorage.setItem(KEY, JSON.stringify(novo));
     } catch {
@@ -38,6 +40,14 @@ export default function BotaoFavorito({ id, variante = "card" }) {
     }
     setFav(novo.includes(id));
     window.dispatchEvent(new Event("cc-favoritos"));
+
+    // Só dispara o evento quando ADICIONA aos favoritos (sinal de interesse).
+    if (adicionou) {
+      rastrearEvento("AddToWishlist", {
+        meta: { content_ids: [id], content_type: "product", currency: "BRL" },
+        tiktok: { content_id: String(id), content_type: "product", currency: "BRL" },
+      });
+    }
   }
 
   const ativo = montado && fav;

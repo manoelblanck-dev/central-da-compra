@@ -3,7 +3,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Analytics } from "@vercel/analytics/react";
-import Pixels from "@/components/Pixels";
+import Consentimento from "@/components/Consentimento";
 
 const instrument = Instrument_Serif({
   subsets: ["latin"],
@@ -42,7 +42,7 @@ export default function RootLayout({ children }) {
         <main className="flex-1">{children}</main>
         <Footer />
         <Analytics />
-        <Pixels />
+        <Consentimento />
       </body>
     </html>
   );
