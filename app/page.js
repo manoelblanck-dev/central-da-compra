@@ -5,6 +5,7 @@ import CategoryCarousel from "@/components/CategoryCarousel";
 import ProximoJogo from "@/components/ProximoJogo";
 import CupomStrip from "@/components/CupomStrip";
 import VistosRecentemente from "@/components/VistosRecentemente";
+import BotaoWhatsApp from "@/components/BotaoWhatsApp";
 import { IconEscudo, IconLojaOficial, IconRapido } from "@/components/IconesSelo";
 
 // Sempre buscar dados frescos (produtos recém-cadastrados aparecem na hora).
@@ -101,6 +102,9 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* Convite pro canal de ofertas no WhatsApp (só aparece com o link configurado) */}
+      <BotaoWhatsApp variante="faixa" />
 
       {/* Vistos recentemente (só aparece se a pessoa já visitou algum produto) */}
       <VistosRecentemente />

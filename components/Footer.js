@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CATEGORIAS } from "@/lib/constantes";
+import BotaoWhatsApp from "@/components/BotaoWhatsApp";
 
 export default function Footer() {
   return (
@@ -20,6 +21,8 @@ export default function Footer() {
               Selecionamos as melhores ofertas da Shopee, Mercado Livre e TikTok Shop
               para você comprar com tranquilidade. ⚽ Vai, Brasil!
             </p>
+            {/* Convite pro WhatsApp (só aparece com o link configurado) */}
+            <BotaoWhatsApp variante="botao" className="mt-4" />
           </div>
 
           <div>
