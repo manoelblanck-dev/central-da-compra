@@ -37,6 +37,7 @@ export default function AdminPage() {
   const [selecionados, setSelecionados] = useState([]); // ids marcados na tabela
   const [excluindoLote, setExcluindoLote] = useState(false);
   const [atualizandoImagens, setAtualizandoImagens] = useState(false);
+  const [atualizandoTudo, setAtualizandoTudo] = useState(false);
   const [aba, setAba] = useState("produtos"); // produtos | cupons | jogo
 
   const carregar = useCallback(async () => {
@@ -167,6 +168,26 @@ export default function AdminPage() {
     }
   }
 
+  async function atualizarTudoML() {
+    setAtualizandoTudo(true);
+    try {
+      const res = await fetch("/api/produtos/atualizar-tudo", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data.erro || "Não foi possível atualizar os produtos.");
+      } else {
+        alert(
+          `Verificados: ${data.total}\nAtualizados: ${data.atualizados}\nSem dados: ${data.semDados}`
+        );
+        await carregar();
+      }
+    } catch {
+      alert("Erro de conexão.");
+    } finally {
+      setAtualizandoTudo(false);
+    }
+  }
+
   async function sair() {
     await fetch("/api/logout", { method: "POST" });
     router.push("/admin/login");
@@ -234,7 +255,14 @@ export default function AdminPage() {
               disabled={atualizandoImagens}
               className="border border-cc-line px-4 py-2.5 text-sm font-medium text-cc-ink transition hover:bg-cc-cream disabled:opacity-60"
             >
-              {atualizandoImagens ? "Atualizando imagens..." : "🖼️ Atualizar imagens (Mercado Livre)"}
+              {atualizandoImagens ? "Atualizando imagens..." : "Atualizar imagens (Mercado Livre)"}
+            </button>
+            <button
+              onClick={atualizarTudoML}
+              disabled={atualizandoTudo}
+              className="bg-cc-ink px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-black disabled:opacity-60"
+            >
+              {atualizandoTudo ? "Atualizando..." : "Atualizar tudo agora (preço, nota, avaliações)"}
             </button>
           </div>
 
