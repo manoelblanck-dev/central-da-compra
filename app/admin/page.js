@@ -27,6 +27,8 @@ export default function AdminPage() {
   const [lote, setLote] = useState(false); // modal de adicionar vários
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState("");
+  const [selecionados, setSelecionados] = useState([]); // ids marcados na tabela
+  const [excluindoLote, setExcluindoLote] = useState(false);
 
   const carregar = useCallback(async () => {
     setCarregando(true);
@@ -94,6 +96,48 @@ export default function AdminPage() {
     else alert("Não foi possível excluir.");
   }
 
+  function toggleSelecionado(id) {
+    setSelecionados((sel) =>
+      sel.includes(id) ? sel.filter((x) => x !== id) : [...sel, id]
+    );
+  }
+
+  function toggleTodos() {
+    setSelecionados((sel) =>
+      sel.length === produtos.length ? [] : produtos.map((p) => p.id)
+    );
+  }
+
+  async function excluirSelecionados() {
+    if (selecionados.length === 0) return;
+    if (
+      !confirm(
+        `Excluir ${selecionados.length} produto(s) selecionado(s)? Essa ação não pode ser desfeita.`
+      )
+    )
+      return;
+
+    setExcluindoLote(true);
+    try {
+      const res = await fetch("/api/produtos/lote", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selecionados }),
+      });
+      if (res.ok) {
+        setSelecionados([]);
+        await carregar();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.erro || "Não foi possível excluir os produtos selecionados.");
+      }
+    } catch {
+      alert("Erro de conexão.");
+    } finally {
+      setExcluindoLote(false);
+    }
+  }
+
   async function sair() {
     await fetch("/api/logout", { method: "POST" });
     router.push("/admin/login");
@@ -146,6 +190,30 @@ export default function AdminPage() {
       {/* cupons por plataforma */}
       <SecaoCupons />
 
+      {/* ações em lote */}
+      {selecionados.length > 0 ? (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5">
+          <p className="text-sm text-red-700">
+            {selecionados.length} produto(s) selecionado(s)
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setSelecionados([])}
+              className="rounded-lg border border-cc-line bg-white px-3 py-1.5 text-xs font-medium text-cc-ink hover:bg-cc-cream"
+            >
+              Limpar seleção
+            </button>
+            <button
+              onClick={excluirSelecionados}
+              disabled={excluindoLote}
+              className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+            >
+              {excluindoLote ? "Excluindo..." : "Excluir selecionados"}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       {/* tabela */}
       <div className="mt-6 overflow-hidden border border-cc-line bg-white">
         {carregando ? (
@@ -159,6 +227,15 @@ export default function AdminPage() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-cc-line bg-cc-cream/60 text-xs uppercase tracking-wide text-cc-muted">
                 <tr>
+                  <th className="w-10 px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={produtos.length > 0 && selecionados.length === produtos.length}
+                      onChange={toggleTodos}
+                      className="h-4 w-4 accent-cc-yellow"
+                      aria-label="Selecionar todos"
+                    />
+                  </th>
                   <th className="px-4 py-3 font-medium">Produto</th>
                   <th className="px-4 py-3 font-medium">Categoria</th>
                   <th className="px-4 py-3 font-medium">Preço</th>
@@ -169,6 +246,15 @@ export default function AdminPage() {
               <tbody>
                 {produtos.map((p) => (
                   <tr key={p.id} className="border-b border-cc-line last:border-0">
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selecionados.includes(p.id)}
+                        onChange={() => toggleSelecionado(p.id)}
+                        className="h-4 w-4 accent-cc-yellow"
+                        aria-label={`Selecionar ${p.nome}`}
+                      />
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         {/* eslint-disable-next-line @next/next/no-img-element */}

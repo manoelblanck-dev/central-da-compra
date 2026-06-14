@@ -78,3 +78,39 @@ export async function POST(request) {
 
   return NextResponse.json({ adicionados: data.length, ignorados });
 }
+
+// Formato de um UUID (v1 a v5), usado pra validar os ids recebidos.
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export async function DELETE(request) {
+  if (!(await autorizado(request))) {
+    return NextResponse.json({ erro: "Não autorizado." }, { status: 401 });
+  }
+
+  let ids;
+  try {
+    const body = await request.json();
+    ids = body?.ids;
+  } catch {
+    return NextResponse.json({ erro: "Envio inválido." }, { status: 400 });
+  }
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return NextResponse.json({ erro: "Nenhum produto selecionado." }, { status: 400 });
+  }
+
+  const validos = [...new Set(ids)].filter((id) => typeof id === "string" && UUID_REGEX.test(id));
+  if (validos.length === 0) {
+    return NextResponse.json({ erro: "Nenhum produto válido selecionado." }, { status: 400 });
+  }
+  if (validos.length > 200) {
+    return NextResponse.json({ erro: "Máximo de 200 produtos por vez." }, { status: 400 });
+  }
+
+  const { error } = await supabaseAdmin.from("produtos").delete().in("id", validos);
+  if (error) {
+    return NextResponse.json({ erro: error.message }, { status: 400 });
+  }
+
+  return NextResponse.json({ excluidos: validos.length });
+}
