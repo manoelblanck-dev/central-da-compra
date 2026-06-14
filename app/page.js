@@ -7,6 +7,7 @@ import CupomStrip from "@/components/CupomStrip";
 import VistosRecentemente from "@/components/VistosRecentemente";
 import BotaoWhatsApp from "@/components/BotaoWhatsApp";
 import OfertaDoDia from "@/components/OfertaDoDia";
+import FaixaConfianca from "@/components/FaixaConfianca";
 import { IconEscudo, IconLojaOficial, IconRapido } from "@/components/IconesSelo";
 
 // Cache inteligente (ISR): a página é servida do cache (rápida) e atualizada
@@ -57,6 +58,14 @@ async function getOfertaDoDia() {
   return data?.[0] || null;
 }
 
+// Total de produtos cadastrados (pra faixa de confiança). Só conta, não traz dados.
+async function getTotalProdutos() {
+  const { count } = await supabase
+    .from("produtos")
+    .select("*", { count: "exact", head: true });
+  return count || 0;
+}
+
 async function getProximoJogo() {
   const { data } = await supabase
     .from("config")
@@ -77,12 +86,14 @@ async function getCupons() {
 
 export default async function Home() {
   // Os blocos são independentes — busca tudo em paralelo.
-  const [{ ofertas, recentes, clicados }, jogo, cupons, ofertaDoDia] = await Promise.all([
-    getProdutos(),
-    getProximoJogo(),
-    getCupons(),
-    getOfertaDoDia(),
-  ]);
+  const [{ ofertas, recentes, clicados }, jogo, cupons, ofertaDoDia, totalProdutos] =
+    await Promise.all([
+      getProdutos(),
+      getProximoJogo(),
+      getCupons(),
+      getOfertaDoDia(),
+      getTotalProdutos(),
+    ]);
 
   return (
     <div className="mx-auto max-w-6xl px-4">
@@ -136,6 +147,9 @@ export default async function Home() {
       <section className="mt-10">
         <CategoryCarousel />
       </section>
+
+      {/* Faixa de confiança (números reais que reforçam credibilidade) */}
+      <FaixaConfianca totalProdutos={totalProdutos} />
 
       {/* OFERTAS DA SEMANA */}
       <section className="mt-12">
