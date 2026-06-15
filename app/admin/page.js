@@ -27,6 +27,7 @@ const PRODUTO_VAZIO = {
   nota: "",
   avaliacoes: "",
   comissao_percent: "",
+  imagens: [],
 };
 
 export default function AdminPage() {
@@ -94,6 +95,7 @@ export default function AdminPage() {
       nota: p.nota ?? "",
       avaliacoes: p.avaliacoes ?? "",
       comissao_percent: p.comissao_percent ?? "",
+      imagens: Array.isArray(p.imagens) ? p.imagens : [],
     });
   }
 
@@ -553,6 +555,7 @@ function FormProduto({ form, setForm, salvar, fechar, salvando, erro, categorias
   const [erroUpload, setErroUpload] = useState("");
   const [buscandoML, setBuscandoML] = useState(false);
   const [erroML, setErroML] = useState("");
+  const [novaImg, setNovaImg] = useState(""); // URL de foto extra (galeria)
 
   async function buscarDoMercadoLivre() {
     const link = (form.link_afiliado || "").trim();
@@ -591,81 +594,110 @@ function FormProduto({ form, setForm, salvar, fechar, salvando, erro, categorias
     setForm((f) => ({ ...f, [campo]: v }));
   };
 
+  // Reduz a imagem no próprio navegador e envia; devolve a URL hospedada.
+  // Reutilizada pela foto principal e pela galeria. Lança erro em caso de falha.
+  async function uploadImagem(file) {
+    if (!file.type || !file.type.startsWith("image/")) {
+      throw new Error("tipo");
+    }
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error("leitura"));
+      reader.readAsDataURL(file);
+    });
+
+    const img = await new Promise((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = () => reject(new Error("formato"));
+      i.src = dataUrl;
+    });
+
+    const MAX = 1200; // maior lado da imagem em pixels
+    let { width, height } = img;
+    if (width > MAX || height > MAX) {
+      if (width >= height) {
+        height = Math.round((height * MAX) / width);
+        width = MAX;
+      } else {
+        width = Math.round((width * MAX) / height);
+        height = MAX;
+      }
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+
+    const ehPng = file.type === "image/png";
+    const tipoSaida = ehPng ? "image/png" : "image/jpeg";
+    const ext = ehPng ? "png" : "jpg";
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, tipoSaida, 0.85));
+    if (!blob) throw new Error("conversao");
+
+    const fd = new FormData();
+    fd.append("file", blob, `produto.${ext}`);
+    const res = await fetch("/api/upload", { method: "POST", body: fd });
+    let data = {};
+    try {
+      data = await res.json();
+    } catch {
+      data = {};
+    }
+    if (!res.ok) throw new Error(data.erro || `Falha ao enviar a imagem (erro ${res.status}).`);
+    return data.url;
+  }
+
   async function enviarImagem(e) {
     const file = e.target.files?.[0];
     if (!file) return;
     setErroUpload("");
-
-    if (!file.type || !file.type.startsWith("image/")) {
-      setErroUpload("Selecione um arquivo de imagem (JPG, PNG, WEBP...).");
-      return;
-    }
-
     setEnviando(true);
     try {
-      // Reduz a imagem no próprio navegador antes de enviar. Isso evita o
-      // limite de tamanho do servidor e deixa o site mais rápido. Funciona
-      // com qualquer formato que o navegador saiba abrir (jpg, jpeg, png, webp...).
-      const dataUrl = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = () => reject(new Error("leitura"));
-        reader.readAsDataURL(file);
-      });
-
-      const img = await new Promise((resolve, reject) => {
-        const i = new Image();
-        i.onload = () => resolve(i);
-        i.onerror = () => reject(new Error("formato"));
-        i.src = dataUrl;
-      });
-
-      const MAX = 1200; // maior lado da imagem em pixels
-      let { width, height } = img;
-      if (width > MAX || height > MAX) {
-        if (width >= height) {
-          height = Math.round((height * MAX) / width);
-          width = MAX;
-        } else {
-          width = Math.round((width * MAX) / height);
-          height = MAX;
-        }
-      }
-
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      canvas.getContext("2d").drawImage(img, 0, 0, width, height);
-
-      const ehPng = file.type === "image/png";
-      const tipoSaida = ehPng ? "image/png" : "image/jpeg";
-      const ext = ehPng ? "png" : "jpg";
-      const blob = await new Promise((resolve) =>
-        canvas.toBlob(resolve, tipoSaida, 0.85)
-      );
-      if (!blob) throw new Error("conversao");
-
-      const fd = new FormData();
-      fd.append("file", blob, `produto.${ext}`);
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-
-      let data = {};
-      try {
-        data = await res.json();
-      } catch {
-        data = {};
-      }
-
-      if (!res.ok) {
-        setErroUpload(data.erro || `Falha ao enviar a imagem (erro ${res.status}).`);
-      } else {
-        setForm((f) => ({ ...f, imagem_url: data.url }));
-      }
+      const url = await uploadImagem(file);
+      setForm((f) => ({ ...f, imagem_url: url }));
     } catch (err) {
-      setErroUpload("Não consegui processar essa imagem. Tente outra (JPG ou PNG).");
+      setErroUpload(
+        err.message === "tipo"
+          ? "Selecione um arquivo de imagem (JPG, PNG, WEBP...)."
+          : "Não consegui processar essa imagem. Tente outra (JPG ou PNG)."
+      );
     } finally {
       setEnviando(false);
+      e.target.value = "";
     }
+  }
+
+  async function enviarImagensGaleria(e) {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setErroUpload("");
+    setEnviando(true);
+    try {
+      const urls = [];
+      for (const file of files) {
+        urls.push(await uploadImagem(file));
+      }
+      setForm((f) => ({ ...f, imagens: [...(f.imagens || []), ...urls] }));
+    } catch (err) {
+      setErroUpload("Não consegui processar uma das fotos. Tente outra (JPG ou PNG).");
+    } finally {
+      setEnviando(false);
+      e.target.value = "";
+    }
+  }
+
+  function adicionarImagemUrl() {
+    const url = novaImg.trim();
+    if (!url) return;
+    setForm((f) => ({ ...f, imagens: [...(f.imagens || []), url] }));
+    setNovaImg("");
+  }
+
+  function removerImagemGaleria(url) {
+    setForm((f) => ({ ...f, imagens: (f.imagens || []).filter((u) => u !== url) }));
   }
 
   const campo =
@@ -755,6 +787,65 @@ function FormProduto({ form, setForm, salvar, fechar, salvando, erro, categorias
               className={`${campo} mt-2`}
               placeholder="ou cole uma URL de imagem aqui"
             />
+          </div>
+
+          {/* galeria — fotos extras */}
+          <div>
+            <label className={rotulo}>Mais fotos (galeria)</label>
+            {form.imagens && form.imagens.length > 0 ? (
+              <div className="mb-2 flex flex-wrap gap-2">
+                {form.imagens.map((url) => (
+                  <div key={url} className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={url}
+                      alt=""
+                      className="h-20 w-20 rounded-xl border border-cc-line object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removerImagemGaleria(url)}
+                      aria-label="Remover foto"
+                      className="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full bg-cc-ink text-xs text-white shadow"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={enviarImagensGaleria}
+              className="block w-full text-sm text-cc-muted file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-cc-cream file:px-4 file:py-2 file:text-sm file:font-semibold file:text-cc-ink hover:file:bg-cc-line"
+            />
+            <div className="mt-2 flex gap-2">
+              <input
+                value={novaImg}
+                onChange={(e) => setNovaImg(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    adicionarImagemUrl();
+                  }
+                }}
+                className={campo}
+                placeholder="ou cole a URL de uma foto extra"
+              />
+              <button
+                type="button"
+                onClick={adicionarImagemUrl}
+                className="shrink-0 rounded-xl border border-cc-line px-4 text-sm font-medium text-cc-ink transition hover:bg-cc-cream"
+              >
+                Adicionar
+              </button>
+            </div>
+            <p className="mt-1 text-xs text-cc-muted">
+              Pode selecionar várias de uma vez. A primeira foto (imagem principal) é a que aparece
+              nos cards; as extras formam a galeria na página do produto.
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -909,6 +1000,12 @@ function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS }) {
           imagem,
           comissao,
         ] = partes;
+        // O campo de imagem aceita VÁRIAS URLs separadas por vírgula:
+        // a primeira vira a foto principal e o resto vai pra galeria.
+        const fotos = (imagem || "")
+          .split(",")
+          .map((u) => u.trim())
+          .filter(Boolean);
         return {
           nome: nome || "",
           link_afiliado: link || "",
@@ -918,7 +1015,8 @@ function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS }) {
           plataforma: normalizarPlataforma(plataforma) || detectarPlataforma(link) || "shopee",
           nota: nota || "",
           avaliacoes: avaliacoes || "",
-          imagem_url: imagem || "",
+          imagem_url: fotos[0] || "",
+          imagens: fotos.slice(1),
           comissao_percent: comissao || "",
         };
       });
@@ -978,7 +1076,9 @@ function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS }) {
             Só <b>Nome</b> e <b>Link</b> são obrigatórios. O resto é opcional — deixe vazio entre
             as barras para pular (ex.: <span className="font-mono">Nome | Link | | | casa</span>). A
             <b> plataforma</b> é detectada pelo link se ficar vazia. A <b>categoria</b> pode ser o
-            nome ou o atalho dela (use a aba “Categorias” para criar novas antes).
+            nome ou o atalho dela (use a aba “Categorias” para criar novas antes). No campo{" "}
+            <b>Imagem</b>, dá pra colar várias URLs separadas por vírgula (a 1ª é a principal, o
+            resto vira galeria).
           </p>
           <p className="mt-2 text-cc-muted">Exemplo com todos os campos preenchidos:</p>
           <p className="mt-1 break-all font-mono text-[11px] text-cc-muted">

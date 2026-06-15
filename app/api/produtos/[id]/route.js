@@ -19,6 +19,15 @@ function linkValido(url) {
   }
 }
 
+// Limpa a lista de fotos extras (galeria): só URLs válidas, no máximo 10.
+function limparImagens(v) {
+  if (!Array.isArray(v)) return [];
+  return v
+    .map((u) => (typeof u === "string" ? u.trim() : ""))
+    .filter((u) => u && (u.startsWith("http") || u.startsWith("/")))
+    .slice(0, 10);
+}
+
 function montarProduto(body) {
   const numero = (v) => (v === "" || v === null || v === undefined ? null : Number(v));
   let nota = numero(body.nota);
@@ -41,6 +50,7 @@ function montarProduto(body) {
     nota,
     avaliacoes,
     comissao_percent: comissao,
+    imagens: limparImagens(body.imagens),
   };
 }
 

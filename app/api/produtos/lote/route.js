@@ -35,6 +35,14 @@ function comissaoValida(v) {
   const n = numero(v);
   return n === null ? null : Math.max(0, Math.min(100, n));
 }
+// fotos extras (galeria): só URLs válidas, no máximo 10
+function limparImagens(v) {
+  if (!Array.isArray(v)) return [];
+  return v
+    .map((u) => (typeof u === "string" ? u.trim() : ""))
+    .filter((u) => u && (u.startsWith("http") || u.startsWith("/")))
+    .slice(0, 10);
+}
 
 export async function POST(request) {
   if (!(await autorizado(request))) {
@@ -81,6 +89,7 @@ export async function POST(request) {
       nota: nota0a5(item.nota),
       avaliacoes: avaliacoesValidas(item.avaliacoes),
       comissao_percent: comissaoValida(item.comissao_percent),
+      imagens: limparImagens(item.imagens),
     });
   }
 

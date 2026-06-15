@@ -5,7 +5,7 @@ import { formatarPreco, nomeCategoria } from "@/lib/constantes";
 import PlatformBadge from "@/components/PlatformBadge";
 import Estrelas from "@/components/Estrelas";
 import ProductGrid from "@/components/ProductGrid";
-import ImagemProduto from "@/components/ImagemProduto";
+import Galeria from "@/components/Galeria";
 import LinkOferta from "@/components/LinkOferta";
 import CupomBox from "@/components/CupomBox";
 import BotaoFavorito from "@/components/BotaoFavorito";
@@ -188,9 +188,7 @@ export default async function ProdutoPage({ params }) {
       <div className="grid gap-6 md:grid-cols-2 md:items-start md:gap-10">
         {/* imagem — fixa no desktop, sem distorção, independente da descrição */}
         <div className="md:sticky md:top-28">
-          <div className="overflow-hidden rounded-2xl border border-cc-line bg-cc-cream">
-            <ImagemProduto src={produto.imagem_url} alt={produto.nome} />
-          </div>
+          <Galeria principal={produto.imagem_url} imagens={produto.imagens} alt={produto.nome} />
         </div>
 
         {/* infos */}
