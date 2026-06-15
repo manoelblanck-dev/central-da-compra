@@ -929,8 +929,9 @@ function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS }) {
             <b> plataforma</b> é detectada pelo link se ficar vazia. A <b>categoria</b> pode ser o
             nome ou o atalho dela (use a aba “Categorias” para criar novas antes).
           </p>
-          <p className="mt-2 font-mono text-[11px] text-cc-muted">
-            Fone TWS | https://shopee.com.br/abc | 89.90 | 149.90 | eletronicos | | 4.8 | 1240 | https://img.jpg
+          <p className="mt-2 text-cc-muted">Exemplo com todos os campos preenchidos:</p>
+          <p className="mt-1 break-all font-mono text-[11px] text-cc-muted">
+            Fone TWS | https://shopee.com.br/abc | 89.90 | 149.90 | eletronicos | shopee | 4.8 | 1240 | https://img.jpg | 12
           </p>
         </div>
 
