@@ -27,7 +27,12 @@ export async function GET(request, { params }) {
   const ua = request.headers.get("user-agent") || "";
   if (!ROBOS.test(ua)) {
     try {
-      await supabaseAdmin.rpc("increment_cliques", { produto_id: id });
+      // Em paralelo: incrementa o contador acumulado e registra o clique
+      // com data (para o painel de desempenho). Best-effort, não trava o redirect.
+      await Promise.allSettled([
+        supabaseAdmin.rpc("increment_cliques", { produto_id: id }),
+        supabaseAdmin.from("cliques_log").insert({ produto_id: id }),
+      ]);
     } catch (e) {
       // ignora
     }
