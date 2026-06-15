@@ -2,11 +2,32 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Header() {
   const router = useRouter();
   const [termo, setTermo] = useState("");
+  const [favs, setFavs] = useState(0);
+  const [montado, setMontado] = useState(false);
+
+  useEffect(() => {
+    setMontado(true);
+    const ler = () => {
+      try {
+        const lista = JSON.parse(localStorage.getItem("cc_favoritos") || "[]");
+        setFavs(Array.isArray(lista) ? lista.length : 0);
+      } catch {
+        setFavs(0);
+      }
+    };
+    ler();
+    window.addEventListener("cc-favoritos", ler);
+    window.addEventListener("storage", ler);
+    return () => {
+      window.removeEventListener("cc-favoritos", ler);
+      window.removeEventListener("storage", ler);
+    };
+  }, []);
 
   function buscar(e) {
     e.preventDefault();
@@ -57,11 +78,18 @@ export default function Header() {
           href="/favoritos"
           aria-label="Meus favoritos"
           title="Meus favoritos"
-          className="flex h-10 shrink-0 items-center gap-1.5 rounded-xl px-2 text-cc-ink transition hover:bg-cc-cream"
+          className="relative flex h-10 shrink-0 items-center gap-1.5 rounded-xl px-2 text-cc-ink transition hover:bg-cc-cream"
         >
-          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="M12 21s-7.5-4.6-10-9.2C.6 9 1.6 5.5 4.8 4.8 7 4.3 9 5.5 12 8.5c3-3 5-4.2 7.2-3.7 3.2.7 4.2 4.2 2.8 7C19.5 16.4 12 21 12 21z" />
-          </svg>
+          <span className="relative">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M12 21s-7.5-4.6-10-9.2C.6 9 1.6 5.5 4.8 4.8 7 4.3 9 5.5 12 8.5c3-3 5-4.2 7.2-3.7 3.2.7 4.2 4.2 2.8 7C19.5 16.4 12 21 12 21z" />
+            </svg>
+            {montado && favs > 0 ? (
+              <span className="absolute -right-2 -top-2 grid h-4 min-w-4 place-items-center rounded-full bg-cc-yellow px-1 text-[10px] font-bold leading-none text-cc-ink">
+                {favs > 99 ? "99+" : favs}
+              </span>
+            ) : null}
+          </span>
           <span className="hidden text-sm font-medium sm:block">Favoritos</span>
         </Link>
       </div>

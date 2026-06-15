@@ -44,6 +44,10 @@ export default function ListagemComFiltro({
     if (precoMax < MAXP) q = q.lte("preco", precoMax);
     if (ordenar === "menor") q = q.order("preco", { ascending: true, nullsFirst: false });
     else if (ordenar === "maior") q = q.order("preco", { ascending: false, nullsFirst: false });
+    else if (ordenar === "desconto")
+      q = q.order("desconto_percent", { ascending: false, nullsFirst: false });
+    else if (ordenar === "avaliacao")
+      q = q.order("nota", { ascending: false, nullsFirst: false });
     else q = q.order("criado_em", { ascending: false });
     return q.range(off, off + porPagina - 1);
   }
@@ -110,6 +114,8 @@ export default function ListagemComFiltro({
           className="w-full rounded-lg border border-cc-line p-2 text-sm outline-none focus:border-cc-yellow"
         >
           <option value="recentes">Mais recentes</option>
+          <option value="desconto">Maior desconto</option>
+          <option value="avaliacao">Melhor avaliação</option>
           <option value="menor">Menor preço</option>
           <option value="maior">Maior preço</option>
         </select>

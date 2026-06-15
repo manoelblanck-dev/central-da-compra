@@ -42,6 +42,8 @@ export default function AdminPage() {
   const [atualizandoImagens, setAtualizandoImagens] = useState(false);
   const [atualizandoTudo, setAtualizandoTudo] = useState(false);
   const [aba, setAba] = useState("produtos"); // produtos | categorias | cupons | jogo
+  const [busca, setBusca] = useState(""); // busca na tabela de produtos
+  const [ordem, setOrdem] = useState("recentes"); // ordenação da tabela
   // Lista completa de categorias (fixas + criadas pelo usuário).
   const [categorias, setCategorias] = useState(CATEGORIAS);
 
@@ -136,9 +138,8 @@ export default function AdminPage() {
   }
 
   function toggleTodos() {
-    setSelecionados((sel) =>
-      sel.length === produtos.length ? [] : produtos.map((p) => p.id)
-    );
+    const ids = produtosExibidos.map((p) => p.id);
+    setSelecionados((sel) => (ids.every((id) => sel.includes(id)) ? [] : ids));
   }
 
   async function excluirSelecionados() {
@@ -233,6 +234,19 @@ export default function AdminPage() {
   const ganhoProduto = (p) =>
     p.preco && p.comissao_percent ? (Number(p.preco) * Number(p.comissao_percent)) / 100 : 0;
   const ganhoPotencial = produtos.reduce((s, p) => s + ganhoProduto(p), 0);
+
+  // Tabela do painel: aplica a busca por nome e a ordenação escolhida.
+  const termoBusca = busca.trim().toLowerCase();
+  const ordenarTabela = (a, b) => {
+    if (ordem === "cliques") return (b.cliques || 0) - (a.cliques || 0);
+    if (ordem === "ganho") return ganhoProduto(b) - ganhoProduto(a);
+    if (ordem === "maior") return (Number(b.preco) || 0) - (Number(a.preco) || 0);
+    if (ordem === "menor") return (Number(a.preco) || 0) - (Number(b.preco) || 0);
+    return new Date(b.criado_em || 0) - new Date(a.criado_em || 0); // recentes
+  };
+  const produtosExibidos = produtos
+    .filter((p) => !termoBusca || (p.nome || "").toLowerCase().includes(termoBusca))
+    .sort(ordenarTabela);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -337,13 +351,41 @@ export default function AdminPage() {
             </div>
           ) : null}
 
+          {/* busca + ordenação */}
+          {produtos.length > 0 ? (
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+              <input
+                type="search"
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                placeholder="Buscar produto pelo nome..."
+                className="flex-1 rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow focus:ring-2 focus:ring-cc-yellow/30"
+              />
+              <select
+                value={ordem}
+                onChange={(e) => setOrdem(e.target.value)}
+                className="rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow"
+              >
+                <option value="recentes">Mais recentes</option>
+                <option value="cliques">Mais clicados</option>
+                <option value="ganho">Maior ganho/venda</option>
+                <option value="maior">Maior preço</option>
+                <option value="menor">Menor preço</option>
+              </select>
+            </div>
+          ) : null}
+
           {/* tabela */}
-          <div className="mt-4 overflow-hidden border border-cc-line bg-white">
+          <div className="mt-3 overflow-hidden border border-cc-line bg-white">
             {carregando ? (
               <p className="px-4 py-10 text-center text-sm text-cc-muted">Carregando...</p>
             ) : produtos.length === 0 ? (
               <p className="px-4 py-10 text-center text-sm text-cc-muted">
                 Nenhum produto ainda. Clique em “Novo produto” para começar.
+              </p>
+            ) : produtosExibidos.length === 0 ? (
+              <p className="px-4 py-10 text-center text-sm text-cc-muted">
+                Nenhum produto encontrado para “{busca}”.
               </p>
             ) : (
               <div className="overflow-x-auto">
@@ -353,7 +395,10 @@ export default function AdminPage() {
                       <th className="w-10 px-4 py-3">
                         <input
                           type="checkbox"
-                          checked={produtos.length > 0 && selecionados.length === produtos.length}
+                          checked={
+                            produtosExibidos.length > 0 &&
+                            produtosExibidos.every((p) => selecionados.includes(p.id))
+                          }
                           onChange={toggleTodos}
                           className="h-4 w-4 accent-cc-yellow"
                           aria-label="Selecionar todos"
@@ -368,7 +413,7 @@ export default function AdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {produtos.map((p) => (
+                    {produtosExibidos.map((p) => (
                       <tr key={p.id} className="border-b border-cc-line last:border-0">
                         <td className="px-4 py-3">
                           <input
