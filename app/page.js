@@ -7,6 +7,7 @@ import CupomStrip from "@/components/CupomStrip";
 import VistosRecentemente from "@/components/VistosRecentemente";
 import BotaoWhatsApp from "@/components/BotaoWhatsApp";
 import OfertaDoDia from "@/components/OfertaDoDia";
+import ProductCarousel from "@/components/ProductCarousel";
 import FaixaConfianca from "@/components/FaixaConfianca";
 import { getCategoriasComProdutos } from "@/lib/categoriasDisponiveis";
 import { getTodasCategorias } from "@/lib/categorias";
@@ -187,15 +188,12 @@ export default async function Home() {
         </section>
       ) : (
         <>
-          {/* OFERTAS DA SEMANA */}
+          {/* OFERTAS DA SEMANA (carrossel — setas só se ultrapassar a tela) */}
           <section className="mt-12">
-            <div className="mb-4 flex items-end justify-between">
-              <h2 className="text-2xl font-semibold tracking-tight text-cc-ink">
-                Ofertas da <span className="serif-accent text-[1.15em]">Semana</span>
-              </h2>
-            </div>
-            <ProductGrid
+            <ProductCarousel
               produtos={ofertas}
+              titulo="Ofertas da"
+              destaque="Semana"
               vazio="Marque produtos como “destaque” no painel admin para eles aparecerem aqui."
             />
             {ofertas.length > 0 ? (
@@ -210,13 +208,10 @@ export default async function Home() {
             ) : null}
           </section>
 
-          {/* MAIS CLICADOS — só com volume suficiente pra não repetir poucos itens */}
+          {/* MAIS CLICADOS (carrossel) — só com volume suficiente */}
           {clicados.length >= 4 ? (
             <section className="mt-14">
-              <h2 className="mb-4 text-2xl font-semibold tracking-tight text-cc-ink">
-                Os mais <span className="serif-accent text-[1.15em]">procurados</span>
-              </h2>
-              <ProductGrid produtos={clicados} />
+              <ProductCarousel produtos={clicados} titulo="Os mais" destaque="procurados" />
             </section>
           ) : null}
 
