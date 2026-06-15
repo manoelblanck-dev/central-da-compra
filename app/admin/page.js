@@ -310,7 +310,7 @@ export default function AdminPage() {
   const totalIncompletos = produtos.filter(incompleto).length;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8">
       {/* topo */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -520,10 +520,10 @@ export default function AdminPage() {
                         />
                       </th>
                       <th className="px-4 py-3 font-medium">Produto</th>
-                      <th className="px-4 py-3 font-medium">Categoria</th>
+                      <th className="hidden px-4 py-3 font-medium md:table-cell">Categoria</th>
                       <th className="px-4 py-3 font-medium">Preço</th>
-                      <th className="px-4 py-3 font-medium">Ganho/venda</th>
-                      <th className="px-4 py-3 font-medium">Cliques</th>
+                      <th className="hidden px-4 py-3 font-medium lg:table-cell">Ganho/venda</th>
+                      <th className="hidden px-4 py-3 font-medium sm:table-cell">Cliques</th>
                       <th className="px-4 py-3 font-medium text-right">Ações</th>
                     </tr>
                   </thead>
@@ -547,18 +547,20 @@ export default function AdminPage() {
                               alt=""
                               className="h-10 w-10 shrink-0 rounded-lg object-cover"
                             />
-                            <div className="min-w-0">
+                            <div className="min-w-0 max-w-[180px] sm:max-w-[260px] lg:max-w-[340px]">
                               <p className="truncate font-medium text-cc-ink">{p.nome}</p>
-                              <p className="text-xs text-cc-muted">
+                              <p className="truncate text-xs text-cc-muted">
                                 {PLATAFORMAS.find((x) => x.id === p.plataforma)?.nome || p.plataforma}
                                 {p.destaque ? " · ⭐ destaque" : ""}
                               </p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-cc-muted">{nomeCategoria(p.categoria, categorias)}</td>
+                        <td className="hidden px-4 py-3 text-cc-muted md:table-cell">
+                          {nomeCategoria(p.categoria, categorias)}
+                        </td>
                         <td className="px-4 py-3 text-cc-ink">{formatarPreco(p.preco) || "—"}</td>
-                        <td className="px-4 py-3">
+                        <td className="hidden px-4 py-3 lg:table-cell">
                           {p.comissao_percent ? (
                             <span className="text-br-green">
                               {formatarPreco(ganhoProduto(p))}
@@ -570,7 +572,7 @@ export default function AdminPage() {
                             <span className="text-cc-muted">—</span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-cc-muted">{p.cliques || 0}</td>
+                        <td className="hidden px-4 py-3 text-cc-muted sm:table-cell">{p.cliques || 0}</td>
                         <td className="px-4 py-3">
                           <div className="flex justify-end gap-2">
                             <button
