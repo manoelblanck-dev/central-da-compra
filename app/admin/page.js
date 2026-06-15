@@ -26,6 +26,7 @@ const PRODUTO_VAZIO = {
   destaque: false,
   nota: "",
   avaliacoes: "",
+  comissao_percent: "",
 };
 
 export default function AdminPage() {
@@ -90,6 +91,7 @@ export default function AdminPage() {
       imagem_url: p.imagem_url ?? "",
       nota: p.nota ?? "",
       avaliacoes: p.avaliacoes ?? "",
+      comissao_percent: p.comissao_percent ?? "",
     });
   }
 
@@ -226,6 +228,11 @@ export default function AdminPage() {
 
   const totalCliques = produtos.reduce((s, p) => s + (p.cliques || 0), 0);
   const totalDestaques = produtos.filter((p) => p.destaque).length;
+  // Ganho por venda de cada produto = preço × comissão%. O potencial é a soma
+  // (quanto você ganharia vendendo um de cada).
+  const ganhoProduto = (p) =>
+    p.preco && p.comissao_percent ? (Number(p.preco) * Number(p.comissao_percent)) / 100 : 0;
+  const ganhoPotencial = produtos.reduce((s, p) => s + ganhoProduto(p), 0);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -244,10 +251,14 @@ export default function AdminPage() {
       </div>
 
       {/* métricas */}
-      <div className="mt-6 grid grid-cols-3 gap-3">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Metrica rotulo="Produtos" valor={produtos.length} />
         <Metrica rotulo="Em destaque" valor={totalDestaques} />
         <Metrica rotulo="Cliques em ofertas" valor={totalCliques} />
+        <Metrica
+          rotulo="Ganho potencial (1 de cada)"
+          valor={formatarPreco(ganhoPotencial) || "R$ 0,00"}
+        />
       </div>
 
       {/* abas */}
@@ -348,6 +359,7 @@ export default function AdminPage() {
                       <th className="px-4 py-3 font-medium">Produto</th>
                       <th className="px-4 py-3 font-medium">Categoria</th>
                       <th className="px-4 py-3 font-medium">Preço</th>
+                      <th className="px-4 py-3 font-medium">Ganho/venda</th>
                       <th className="px-4 py-3 font-medium">Cliques</th>
                       <th className="px-4 py-3 font-medium text-right">Ações</th>
                     </tr>
@@ -383,6 +395,18 @@ export default function AdminPage() {
                         </td>
                         <td className="px-4 py-3 text-cc-muted">{nomeCategoria(p.categoria, categorias)}</td>
                         <td className="px-4 py-3 text-cc-ink">{formatarPreco(p.preco) || "—"}</td>
+                        <td className="px-4 py-3">
+                          {p.comissao_percent ? (
+                            <span className="text-br-green">
+                              {formatarPreco(ganhoProduto(p))}
+                              <span className="ml-1 text-xs text-cc-muted">
+                                ({p.comissao_percent}%)
+                              </span>
+                            </span>
+                          ) : (
+                            <span className="text-cc-muted">—</span>
+                          )}
+                        </td>
                         <td className="px-4 py-3 text-cc-muted">{p.cliques || 0}</td>
                         <td className="px-4 py-3">
                           <div className="flex justify-end gap-2">
@@ -695,6 +719,33 @@ function FormProduto({ form, setForm, salvar, fechar, salvando, erro, categorias
 
           <div className="grid grid-cols-2 gap-3">
             <div>
+              <label className={rotulo}>Comissão do afiliado (%)</label>
+              <input
+                type="number"
+                step="0.1"
+                min="0"
+                max="100"
+                value={form.comissao_percent}
+                onChange={set("comissao_percent")}
+                className={campo}
+                placeholder="10"
+              />
+            </div>
+            <div>
+              <label className={rotulo}>Você ganha por venda</label>
+              <div className="rounded-xl border border-cc-line bg-cc-cream/50 px-3 py-2.5 text-sm font-semibold text-br-green">
+                {form.preco && form.comissao_percent
+                  ? formatarPreco((Number(form.preco) * Number(form.comissao_percent)) / 100)
+                  : "—"}
+              </div>
+            </div>
+          </div>
+          <p className="-mt-1 text-xs text-cc-muted">
+            Quanto você recebe por cada venda (uso interno — não aparece no site).
+          </p>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
               <label className={rotulo}>Plataforma</label>
               <select value={form.plataforma} onChange={set("plataforma")} className={campo}>
                 {PLATAFORMAS.map((p) => (
@@ -795,8 +846,18 @@ function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS }) {
       .filter(Boolean)
       .map((linha) => {
         const partes = linha.split("|").map((p) => p.trim());
-        const [nome, link, preco, precoAntigo, categoria, plataforma, nota, avaliacoes, imagem] =
-          partes;
+        const [
+          nome,
+          link,
+          preco,
+          precoAntigo,
+          categoria,
+          plataforma,
+          nota,
+          avaliacoes,
+          imagem,
+          comissao,
+        ] = partes;
         return {
           nome: nome || "",
           link_afiliado: link || "",
@@ -807,6 +868,7 @@ function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS }) {
           nota: nota || "",
           avaliacoes: avaliacoes || "",
           imagem_url: imagem || "",
+          comissao_percent: comissao || "",
         };
       });
   }
@@ -859,6 +921,7 @@ function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS }) {
           <p className="font-semibold">Um produto por linha, separando os campos por “|”:</p>
           <p className="mt-1 font-mono text-[11px] leading-relaxed">
             Nome | Link | Preço | Preço antigo | Categoria | Plataforma | Nota | Avaliações | Imagem
+            | Comissão %
           </p>
           <p className="mt-2 text-cc-muted">
             Só <b>Nome</b> e <b>Link</b> são obrigatórios. O resto é opcional — deixe vazio entre
@@ -901,6 +964,7 @@ function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS }) {
                       <th className="px-2 py-1.5 font-medium">Categoria</th>
                       <th className="px-2 py-1.5 font-medium">Plataforma</th>
                       <th className="px-2 py-1.5 font-medium">Nota</th>
+                      <th className="px-2 py-1.5 font-medium">Ganho/venda</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -919,6 +983,13 @@ function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS }) {
                         <td className="px-2 py-1.5 text-cc-muted">{nomePlat(p.plataforma)}</td>
                         <td className="px-2 py-1.5 text-cc-muted">
                           {p.nota ? `${p.nota}${p.avaliacoes ? ` (${p.avaliacoes})` : ""}` : "—"}
+                        </td>
+                        <td className="px-2 py-1.5 text-br-green">
+                          {p.preco && p.comissao_percent
+                            ? `${formatarPreco(
+                                (Number(p.preco) * Number(p.comissao_percent)) / 100
+                              )} (${p.comissao_percent}%)`
+                            : "—"}
                         </td>
                       </tr>
                     ))}

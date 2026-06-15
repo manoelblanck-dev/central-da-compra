@@ -25,6 +25,9 @@ function montarProduto(body) {
   if (nota !== null) nota = Math.max(0, Math.min(5, nota));
   let avaliacoes = numero(body.avaliacoes);
   if (avaliacoes !== null) avaliacoes = Math.max(0, Math.round(avaliacoes));
+  // comissão de afiliado em %, limitada a 0–100
+  let comissao = numero(body.comissao_percent);
+  if (comissao !== null) comissao = Math.max(0, Math.min(100, comissao));
   return {
     nome: body.nome?.trim() || "",
     descricao: body.descricao?.trim() || null,
@@ -37,6 +40,7 @@ function montarProduto(body) {
     destaque: !!body.destaque,
     nota,
     avaliacoes,
+    comissao_percent: comissao,
   };
 }
 

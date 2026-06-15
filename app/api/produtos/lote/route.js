@@ -30,6 +30,11 @@ function avaliacoesValidas(v) {
   const n = numero(v);
   return n === null ? null : Math.max(0, Math.round(n));
 }
+// comissão de afiliado em %, limitada a 0–100
+function comissaoValida(v) {
+  const n = numero(v);
+  return n === null ? null : Math.max(0, Math.min(100, n));
+}
 
 export async function POST(request) {
   if (!(await autorizado(request))) {
@@ -75,6 +80,7 @@ export async function POST(request) {
       destaque: !!item.destaque,
       nota: nota0a5(item.nota),
       avaliacoes: avaliacoesValidas(item.avaliacoes),
+      comissao_percent: comissaoValida(item.comissao_percent),
     });
   }
 
