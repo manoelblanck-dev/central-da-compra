@@ -1,12 +1,15 @@
 import Link from "next/link";
-import { CATEGORIAS } from "@/lib/constantes";
 import BotaoWhatsApp from "@/components/BotaoWhatsApp";
 import { getCategoriasComProdutos } from "@/lib/categoriasDisponiveis";
+import { getTodasCategorias } from "@/lib/categorias";
 
 export default async function Footer() {
-  // Mostra no rodapé só as categorias que têm produtos (esconde as vazias).
-  const disponiveis = await getCategoriasComProdutos();
-  const categorias = CATEGORIAS.filter((c) => disponiveis.includes(c.slug));
+  // Mostra no rodapé só as categorias (fixas ou criadas) que têm produtos.
+  const [disponiveis, todas] = await Promise.all([
+    getCategoriasComProdutos(),
+    getTodasCategorias(),
+  ]);
+  const categorias = todas.filter((c) => disponiveis.includes(c.slug));
 
   return (
     <footer className="mt-16 border-t border-cc-line bg-cc-cream/60">

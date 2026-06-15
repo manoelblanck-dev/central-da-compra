@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import ListagemComFiltro from "@/components/ListagemComFiltro";
+import { getTodasCategorias } from "@/lib/categorias";
 
 export const revalidate = 300; // cache inteligente (ISR), atualiza a cada 5 min
 
@@ -19,7 +20,7 @@ async function getInicial() {
 }
 
 export default async function ProdutosPage() {
-  const inicial = await getInicial();
+  const [inicial, categorias] = await Promise.all([getInicial(), getTodasCategorias()]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -28,6 +29,7 @@ export default async function ProdutosPage() {
         inicial={inicial}
         contexto={{ tipo: "todos" }}
         porPagina={POR_PAGINA}
+        categorias={categorias}
       />
     </div>
   );

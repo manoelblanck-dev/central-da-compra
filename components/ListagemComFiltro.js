@@ -15,7 +15,12 @@ const PLATS = [
   { id: "tiktok_shop", nome: "TikTok Shop" },
 ];
 
-export default function ListagemComFiltro({ inicial = [], contexto, porPagina = 12 }) {
+export default function ListagemComFiltro({
+  inicial = [],
+  contexto,
+  porPagina = 12,
+  categorias = CATEGORIAS,
+}) {
   const [produtos, setProdutos] = useState(inicial);
   const [offset, setOffset] = useState(inicial.length);
   const [carregando, setCarregando] = useState(false);
@@ -168,7 +173,7 @@ export default function ListagemComFiltro({ inicial = [], contexto, porPagina = 
       <div className="px-4 py-4">
         <p className="mb-2 text-xs font-bold uppercase tracking-wide text-cc-muted">Categorias</p>
         <div className="flex flex-col gap-1.5 text-sm">
-          {CATEGORIAS.map((c) => (
+          {(categorias && categorias.length ? categorias : CATEGORIAS).map((c) => (
             <Link
               key={c.slug}
               href={`/categoria/${c.slug}`}

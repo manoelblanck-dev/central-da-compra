@@ -9,6 +9,7 @@ import BotaoWhatsApp from "@/components/BotaoWhatsApp";
 import OfertaDoDia from "@/components/OfertaDoDia";
 import FaixaConfianca from "@/components/FaixaConfianca";
 import { getCategoriasComProdutos } from "@/lib/categoriasDisponiveis";
+import { getTodasCategorias } from "@/lib/categorias";
 import { IconEscudo, IconLojaOficial, IconRapido } from "@/components/IconesSelo";
 
 // Cache inteligente (ISR): a página é servida do cache (rápida) e atualizada
@@ -94,6 +95,7 @@ export default async function Home() {
     ofertaDoDia,
     totalProdutos,
     categoriasDisp,
+    todasCategorias,
   ] = await Promise.all([
     getProdutos(),
     getProximoJogo(),
@@ -101,7 +103,13 @@ export default async function Home() {
     getOfertaDoDia(),
     getTotalProdutos(),
     getCategoriasComProdutos(),
+    getTodasCategorias(),
   ]);
+
+  // Categorias a exibir no carrossel: as que têm produtos (fixas ou criadas).
+  const categoriasParaMostrar = todasCategorias.filter((c) =>
+    categoriasDisp.includes(c.slug)
+  );
 
   // Catálogo pequeno: evita mostrar os mesmos produtos repetidos em 3 seções.
   // Mostra uma única seção "Ofertas" com tudo. Quando crescer, volta a separar
@@ -157,9 +165,9 @@ export default async function Home() {
       <ProximoJogo jogo={jogo} />
 
       {/* CATEGORIAS (carrossel) — só aparece se houver categorias com produtos */}
-      {categoriasDisp.length > 0 ? (
+      {categoriasParaMostrar.length > 0 ? (
         <section className="mt-10">
-          <CategoryCarousel disponiveis={categoriasDisp} />
+          <CategoryCarousel categorias={categoriasParaMostrar} />
         </section>
       ) : null}
 

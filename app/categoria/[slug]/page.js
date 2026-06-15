@@ -1,14 +1,20 @@
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { CATEGORIAS, nomeCategoria } from "@/lib/constantes";
+import { nomeCategoria } from "@/lib/constantes";
+import { getTodasCategorias } from "@/lib/categorias";
 import ListagemComFiltro from "@/components/ListagemComFiltro";
 
 export const revalidate = 300; // cache inteligente (ISR), atualiza a cada 5 min
 
-// Diz ao Next quais categorias existem, pra ele já deixar as páginas prontas
-// no cache durante o build (lista fixa, sem consultar o banco).
-export function generateStaticParams() {
-  return CATEGORIAS.map((c) => ({ slug: c.slug }));
+// Diz ao Next quais categorias existem (fixas + criadas pelo usuário), pra
+// já deixar as páginas no cache. Categorias novas geram sob demanda também.
+export async function generateStaticParams() {
+  try {
+    const todas = await getTodasCategorias();
+    return todas.map((c) => ({ slug: c.slug }));
+  } catch {
+    return [];
+  }
 }
 
 const POR_PAGINA = 12;
@@ -25,9 +31,14 @@ async function getInicial(slug) {
 
 export default async function CategoriaPage({ params }) {
   const slug = params.slug;
-  if (!CATEGORIAS.some((c) => c.slug === slug)) notFound();
 
-  const inicial = await getInicial(slug);
+  const [todas, inicial] = await Promise.all([getTodasCategorias(), getInicial(slug)]);
+
+  // Aceita a categoria se ela existe (fixa ou criada) OU se já tem produtos.
+  const existe = todas.some((c) => c.slug === slug) || inicial.length > 0;
+  if (!existe) notFound();
+
+  const nome = nomeCategoria(slug, todas);
 
   const base = "https://centraldacompraonline.com.br";
   const schemaBreadcrumb = {
@@ -35,7 +46,7 @@ export default async function CategoriaPage({ params }) {
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Início", item: base },
-      { "@type": "ListItem", position: 2, name: nomeCategoria(slug), item: `${base}/categoria/${slug}` },
+      { "@type": "ListItem", position: 2, name: nome, item: `${base}/categoria/${slug}` },
     ],
   };
 
@@ -45,11 +56,12 @@ export default async function CategoriaPage({ params }) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaBreadcrumb).replace(/</g, "\\u003c") }}
       />
-      <h1 className="mb-6 cc-mono text-3xl text-cc-ink">{nomeCategoria(slug)}</h1>
+      <h1 className="mb-6 cc-mono text-3xl text-cc-ink">{nome}</h1>
       <ListagemComFiltro
         inicial={inicial}
         contexto={{ tipo: "categoria", slug }}
         porPagina={POR_PAGINA}
+        categorias={todas}
       />
     </div>
   );

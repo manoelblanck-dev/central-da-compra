@@ -14,14 +14,12 @@ function BandeiraBrasil() {
   );
 }
 
-export default function CategoryCarousel({ disponiveis = null }) {
+export default function CategoryCarousel({ categorias = null }) {
   const trackRef = useRef(null);
 
-  // Se receber a lista de categorias com produtos, mostra só essas (esconde
-  // as vazias). Sem a lista (null), mostra todas — comportamento antigo.
-  const lista = disponiveis
-    ? CATEGORIAS.filter((c) => disponiveis.includes(c.slug))
-    : CATEGORIAS;
+  // Recebe a lista de categorias a exibir (já filtrada/montada pelo servidor —
+  // inclui as criadas pelo usuário e esconde as vazias). Sem lista, usa as fixas.
+  const lista = categorias && categorias.length ? categorias : CATEGORIAS;
 
   if (lista.length === 0) return null;
 

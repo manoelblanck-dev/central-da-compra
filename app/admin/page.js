@@ -10,6 +10,8 @@ import {
   nomeCategoria,
   detectarPlataforma,
   normalizarPlataforma,
+  normalizarCategoria,
+  gerarSlug,
 } from "@/lib/constantes";
 
 const PRODUTO_VAZIO = {
@@ -38,7 +40,9 @@ export default function AdminPage() {
   const [excluindoLote, setExcluindoLote] = useState(false);
   const [atualizandoImagens, setAtualizandoImagens] = useState(false);
   const [atualizandoTudo, setAtualizandoTudo] = useState(false);
-  const [aba, setAba] = useState("produtos"); // produtos | cupons | jogo
+  const [aba, setAba] = useState("produtos"); // produtos | categorias | cupons | jogo
+  // Lista completa de categorias (fixas + criadas pelo usuário).
+  const [categorias, setCategorias] = useState(CATEGORIAS);
 
   const carregar = useCallback(async () => {
     setCarregando(true);
@@ -50,9 +54,26 @@ export default function AdminPage() {
     setCarregando(false);
   }, []);
 
+  // Busca as categorias criadas pelo usuário (config) e junta com as fixas.
+  const carregarCategorias = useCallback(async () => {
+    try {
+      const res = await fetch("/api/config?chave=categorias");
+      const data = await res.json();
+      const extras = Array.isArray(data?.valor) ? data.valor : [];
+      const fixos = new Set(CATEGORIAS.map((c) => c.slug));
+      const limpos = extras
+        .filter((c) => c && c.slug && c.nome && !fixos.has(c.slug))
+        .map((c) => ({ slug: c.slug, nome: c.nome, emoji: c.emoji || "🏷️" }));
+      setCategorias([...CATEGORIAS, ...limpos]);
+    } catch {
+      setCategorias(CATEGORIAS);
+    }
+  }, []);
+
   useEffect(() => {
     carregar();
-  }, [carregar]);
+    carregarCategorias();
+  }, [carregar, carregarCategorias]);
 
   function novo() {
     setErro("");
@@ -234,6 +255,9 @@ export default function AdminPage() {
         <AbaBotao ativo={aba === "produtos"} onClick={() => setAba("produtos")}>
           📦 Produtos
         </AbaBotao>
+        <AbaBotao ativo={aba === "categorias"} onClick={() => setAba("categorias")}>
+          🏷️ Categorias
+        </AbaBotao>
         <AbaBotao ativo={aba === "cupons"} onClick={() => setAba("cupons")}>
           🎟️ Cupons
         </AbaBotao>
@@ -357,7 +381,7 @@ export default function AdminPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-cc-muted">{nomeCategoria(p.categoria)}</td>
+                        <td className="px-4 py-3 text-cc-muted">{nomeCategoria(p.categoria, categorias)}</td>
                         <td className="px-4 py-3 text-cc-ink">{formatarPreco(p.preco) || "—"}</td>
                         <td className="px-4 py-3 text-cc-muted">{p.cliques || 0}</td>
                         <td className="px-4 py-3">
@@ -386,6 +410,11 @@ export default function AdminPage() {
         </div>
       ) : null}
 
+      {/* aba: categorias */}
+      {aba === "categorias" ? (
+        <SecaoCategorias categorias={categorias} aoMudar={carregarCategorias} />
+      ) : null}
+
       {/* aba: cupons */}
       {aba === "cupons" ? <SecaoCupons /> : null}
 
@@ -401,12 +430,14 @@ export default function AdminPage() {
           fechar={() => setForm(null)}
           salvando={salvando}
           erro={erro}
+          categorias={categorias}
         />
       ) : null}
 
       {/* modal de adicionar vários */}
       {lote ? (
         <FormLote
+          categorias={categorias}
           fechar={() => setLote(false)}
           aoConcluir={() => {
             setLote(false);
@@ -442,7 +473,7 @@ function AbaBotao({ ativo, onClick, children }) {
   );
 }
 
-function FormProduto({ form, setForm, salvar, fechar, salvando, erro }) {
+function FormProduto({ form, setForm, salvar, fechar, salvando, erro, categorias = CATEGORIAS }) {
   const [enviando, setEnviando] = useState(false);
   const [erroUpload, setErroUpload] = useState("");
   const [buscandoML, setBuscandoML] = useState(false);
@@ -674,7 +705,7 @@ function FormProduto({ form, setForm, salvar, fechar, salvando, erro }) {
             <div>
               <label className={rotulo}>Categoria</label>
               <select value={form.categoria} onChange={set("categoria")} className={campo}>
-                {CATEGORIAS.map((c) => (
+                {categorias.map((c) => (
                   <option key={c.slug} value={c.slug}>{c.nome}</option>
                 ))}
               </select>
@@ -749,35 +780,42 @@ function FormProduto({ form, setForm, salvar, fechar, salvando, erro }) {
   );
 }
 
-function FormLote({ fechar, aoConcluir }) {
+function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS }) {
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState("");
   const [resultado, setResultado] = useState(null);
 
+  // Campos por linha, em ordem (só Nome e Link são obrigatórios):
+  // Nome | Link | Preço | Preço antigo | Categoria | Plataforma | Nota | Avaliações | Imagem
   function parseLinhas(txt) {
     return txt
       .split("\n")
       .map((l) => l.trim())
       .filter(Boolean)
       .map((linha) => {
-        const [nome, preco, link, categoria, plataforma] = linha
-          .split("|")
-          .map((p) => p.trim());
+        const partes = linha.split("|").map((p) => p.trim());
+        const [nome, link, preco, precoAntigo, categoria, plataforma, nota, avaliacoes, imagem] =
+          partes;
         return {
           nome: nome || "",
-          preco: preco || "",
           link_afiliado: link || "",
-          categoria: categoria || "outros",
+          preco: preco || "",
+          preco_antigo: precoAntigo || "",
+          categoria: normalizarCategoria(categoria || "", categorias),
           plataforma: normalizarPlataforma(plataforma) || detectarPlataforma(link) || "shopee",
+          nota: nota || "",
+          avaliacoes: avaliacoes || "",
+          imagem_url: imagem || "",
         };
       });
   }
 
   const previa = parseLinhas(texto);
-  const validos = previa.filter(
-    (p) => p.nome && /^https:\/\//i.test(p.link_afiliado || "")
-  );
+  const validos = previa.filter((p) => p.nome && /^https:\/\//i.test(p.link_afiliado || ""));
+  const invalidos = previa.length - validos.length;
+
+  const nomePlat = (id) => PLATAFORMAS.find((p) => p.id === id)?.nome || id;
 
   async function importar(e) {
     e.preventDefault();
@@ -809,7 +847,7 @@ function FormLote({ fechar, aoConcluir }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4">
-      <div className="my-8 w-full max-w-2xl border border-cc-line bg-white p-6 shadow-card">
+      <div className="my-8 w-full max-w-3xl border border-cc-line bg-white p-6 shadow-card">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="cc-mono text-2xl text-cc-ink">Adicionar vários produtos</h2>
           <button onClick={fechar} className="text-cc-muted hover:text-cc-ink" aria-label="Fechar">
@@ -818,14 +856,18 @@ function FormLote({ fechar, aoConcluir }) {
         </div>
 
         <div className="mb-4 border border-cc-line bg-cc-cream/60 p-3 text-xs text-cc-ink">
-          <p className="font-semibold">Um produto por linha, neste formato:</p>
-          <p className="mt-1 font-mono">Nome | preço | link | categoria | plataforma</p>
-          <p className="mt-2 text-cc-muted">
-            Só <b>nome</b> e <b>link</b> são obrigatórios. Preço, categoria e plataforma são
-            opcionais (a plataforma é detectada pelo link). Exemplo:
+          <p className="font-semibold">Um produto por linha, separando os campos por “|”:</p>
+          <p className="mt-1 font-mono text-[11px] leading-relaxed">
+            Nome | Link | Preço | Preço antigo | Categoria | Plataforma | Nota | Avaliações | Imagem
           </p>
-          <p className="mt-1 font-mono text-cc-muted">
-            Fone TWS | 89.90 | https://shopee.com.br/abc | eletronicos
+          <p className="mt-2 text-cc-muted">
+            Só <b>Nome</b> e <b>Link</b> são obrigatórios. O resto é opcional — deixe vazio entre
+            as barras para pular (ex.: <span className="font-mono">Nome | Link | | | casa</span>). A
+            <b> plataforma</b> é detectada pelo link se ficar vazia. A <b>categoria</b> pode ser o
+            nome ou o atalho dela (use a aba “Categorias” para criar novas antes).
+          </p>
+          <p className="mt-2 font-mono text-[11px] text-cc-muted">
+            Fone TWS | https://shopee.com.br/abc | 89.90 | 149.90 | eletronicos | | 4.8 | 1240 | https://img.jpg
           </p>
         </div>
 
@@ -839,20 +881,53 @@ function FormLote({ fechar, aoConcluir }) {
             <textarea
               value={texto}
               onChange={(e) => setTexto(e.target.value)}
-              rows={9}
+              rows={7}
               placeholder="Cole aqui suas linhas, uma por produto..."
               className="w-full border border-cc-line p-3 font-mono text-xs outline-none focus:border-cc-yellow focus:ring-2 focus:ring-cc-yellow/30"
             />
             <p className="text-xs text-cc-muted">
               {validos.length} produto(s) válido(s) detectado(s)
-              {previa.length - validos.length > 0
-                ? ` · ${previa.length - validos.length} linha(s) sem nome ou link válido`
-                : ""}
+              {invalidos > 0 ? ` · ${invalidos} linha(s) sem nome ou link válido` : ""}
             </p>
 
-            {erro ? (
-              <p className="bg-red-50 px-3 py-2 text-sm text-red-700">{erro}</p>
+            {/* Prévia: mostra como cada produto foi interpretado (evita erros) */}
+            {validos.length > 0 ? (
+              <div className="max-h-56 overflow-auto rounded-lg border border-cc-line">
+                <table className="w-full text-left text-xs">
+                  <thead className="sticky top-0 bg-cc-cream/80 text-[11px] uppercase tracking-wide text-cc-muted">
+                    <tr>
+                      <th className="px-2 py-1.5 font-medium">Nome</th>
+                      <th className="px-2 py-1.5 font-medium">Preço</th>
+                      <th className="px-2 py-1.5 font-medium">Categoria</th>
+                      <th className="px-2 py-1.5 font-medium">Plataforma</th>
+                      <th className="px-2 py-1.5 font-medium">Nota</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {validos.map((p, i) => (
+                      <tr key={i} className="border-t border-cc-line">
+                        <td className="max-w-[180px] truncate px-2 py-1.5 text-cc-ink">{p.nome}</td>
+                        <td className="px-2 py-1.5 text-cc-ink">
+                          {p.preco ? `R$ ${p.preco}` : "—"}
+                          {p.preco_antigo ? (
+                            <span className="text-cc-muted line-through"> {p.preco_antigo}</span>
+                          ) : null}
+                        </td>
+                        <td className="px-2 py-1.5 text-cc-muted">
+                          {nomeCategoria(p.categoria, categorias)}
+                        </td>
+                        <td className="px-2 py-1.5 text-cc-muted">{nomePlat(p.plataforma)}</td>
+                        <td className="px-2 py-1.5 text-cc-muted">
+                          {p.nota ? `${p.nota}${p.avaliacoes ? ` (${p.avaliacoes})` : ""}` : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             ) : null}
+
+            {erro ? <p className="bg-red-50 px-3 py-2 text-sm text-red-700">{erro}</p> : null}
 
             <div className="flex gap-2 pt-1">
               <button
@@ -872,6 +947,196 @@ function FormLote({ fechar, aoConcluir }) {
             </div>
           </form>
         )}
+      </div>
+    </div>
+  );
+}
+
+function SecaoCategorias({ categorias = CATEGORIAS, aoMudar }) {
+  const [custom, setCustom] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [salvando, setSalvando] = useState(false);
+  const [nome, setNome] = useState("");
+  const [emoji, setEmoji] = useState("");
+  const [msg, setMsg] = useState("");
+
+  const fixas = CATEGORIAS;
+
+  const carregar = useCallback(async () => {
+    try {
+      const res = await fetch("/api/config?chave=categorias");
+      const data = await res.json();
+      setCustom(
+        Array.isArray(data?.valor) ? data.valor.filter((c) => c && c.slug && c.nome) : []
+      );
+    } catch {
+      /* ignora */
+    }
+    setCarregando(false);
+  }, []);
+
+  useEffect(() => {
+    carregar();
+  }, [carregar]);
+
+  async function persistir(nova) {
+    setSalvando(true);
+    setMsg("");
+    try {
+      const res = await fetch("/api/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chave: "categorias", valor: nova }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setCustom(nova);
+        setMsg("✅ Categorias atualizadas!");
+        aoMudar?.();
+      } else {
+        setMsg(data.erro || "Erro ao salvar.");
+      }
+    } catch {
+      setMsg("Erro de conexão.");
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  function adicionar() {
+    const n = nome.trim();
+    if (!n) {
+      setMsg("Informe o nome da categoria.");
+      return;
+    }
+    const slug = gerarSlug(n);
+    if (!slug) {
+      setMsg("Nome inválido — use letras ou números.");
+      return;
+    }
+    if (fixas.some((c) => c.slug === slug)) {
+      setMsg("Já existe uma categoria padrão parecida com essa.");
+      return;
+    }
+    if (custom.some((c) => c.slug === slug)) {
+      setMsg("Você já criou essa categoria.");
+      return;
+    }
+    persistir([...custom, { slug, nome: n, emoji: emoji.trim() || "🏷️" }]);
+    setNome("");
+    setEmoji("");
+  }
+
+  function remover(slug) {
+    if (
+      !confirm(
+        "Remover esta categoria? Os produtos que estão nela continuam existindo, mas a categoria some dos menus."
+      )
+    )
+      return;
+    persistir(custom.filter((c) => c.slug !== slug));
+  }
+
+  const campo =
+    "w-full rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow focus:ring-2 focus:ring-cc-yellow/30";
+
+  return (
+    <div className="mt-4 border border-cc-line bg-white p-5">
+      <h2 className="cc-mono text-xl text-cc-ink">🏷️ Categorias</h2>
+      <p className="mt-1 text-xs text-cc-muted">
+        Crie categorias suas além das padrão. Depois é só escolher a categoria ao cadastrar um
+        produto (inclusive em “Adicionar vários”). Categorias sem produto não aparecem no site.
+      </p>
+
+      {/* criar nova */}
+      <div className="mt-4 flex flex-wrap items-end gap-2">
+        <div className="w-20">
+          <label className="mb-1 block text-xs font-medium text-cc-ink">Ícone</label>
+          <input
+            value={emoji}
+            onChange={(e) => setEmoji(e.target.value)}
+            className={campo}
+            placeholder="🎮"
+            maxLength={2}
+          />
+        </div>
+        <div className="min-w-[180px] flex-1">
+          <label className="mb-1 block text-xs font-medium text-cc-ink">Nome da categoria</label>
+          <input
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                adicionar();
+              }
+            }}
+            className={campo}
+            placeholder="Ex.: Games, Ferramentas, Moda Praia..."
+          />
+        </div>
+        <button
+          onClick={adicionar}
+          disabled={salvando}
+          className="bg-cc-yellow px-5 py-2.5 text-sm font-bold text-cc-ink transition hover:bg-cc-yellow-dark disabled:opacity-60"
+        >
+          {salvando ? "Salvando..." : "+ Criar"}
+        </button>
+      </div>
+      {nome.trim() ? (
+        <p className="mt-1 text-xs text-cc-muted">
+          Atalho gerado: <span className="font-mono">{gerarSlug(nome) || "—"}</span>
+        </p>
+      ) : null}
+      {msg ? <p className="mt-2 text-sm text-cc-ink">{msg}</p> : null}
+
+      {/* suas categorias */}
+      <div className="mt-6">
+        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-cc-muted">
+          Suas categorias
+        </p>
+        {carregando ? (
+          <p className="text-sm text-cc-muted">Carregando...</p>
+        ) : custom.length === 0 ? (
+          <p className="text-sm text-cc-muted">Você ainda não criou nenhuma categoria.</p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {custom.map((c) => (
+              <span
+                key={c.slug}
+                className="inline-flex items-center gap-2 rounded-full border border-cc-line bg-cc-cream/50 px-3 py-1.5 text-sm text-cc-ink"
+              >
+                <span>{c.emoji || "🏷️"}</span>
+                {c.nome}
+                <button
+                  onClick={() => remover(c.slug)}
+                  disabled={salvando}
+                  aria-label={`Remover ${c.nome}`}
+                  className="text-cc-muted hover:text-red-600"
+                >
+                  ✕
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* categorias padrão (referência) */}
+      <div className="mt-6">
+        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-cc-muted">
+          Categorias padrão (sempre disponíveis)
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {fixas.map((c) => (
+            <span
+              key={c.slug}
+              className="inline-flex items-center gap-2 rounded-full border border-cc-line bg-white px-3 py-1.5 text-sm text-cc-muted"
+            >
+              {c.nome}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );

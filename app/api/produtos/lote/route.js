@@ -21,6 +21,16 @@ function linkValido(url) {
 const numero = (v) =>
   v === "" || v === null || v === undefined || isNaN(Number(v)) ? null : Number(v);
 
+// nota limitada a 0–5; avaliações nunca negativas
+function nota0a5(v) {
+  const n = numero(v);
+  return n === null ? null : Math.max(0, Math.min(5, n));
+}
+function avaliacoesValidas(v) {
+  const n = numero(v);
+  return n === null ? null : Math.max(0, Math.round(n));
+}
+
 export async function POST(request) {
   if (!(await autorizado(request))) {
     return NextResponse.json({ erro: "Não autorizado." }, { status: 401 });
@@ -63,6 +73,8 @@ export async function POST(request) {
       plataforma: normalizarPlataforma(item.plataforma) || detectarPlataforma(link) || "shopee",
       categoria: item.categoria || "outros",
       destaque: !!item.destaque,
+      nota: nota0a5(item.nota),
+      avaliacoes: avaliacoesValidas(item.avaliacoes),
     });
   }
 
