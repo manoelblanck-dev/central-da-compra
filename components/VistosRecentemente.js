@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import ProductCard from "@/components/ProductCard";
 
@@ -24,6 +24,12 @@ export function registrarVisto(id) {
 // `excluir`: id do produto atual, para não mostrar ele na própria lista.
 export default function VistosRecentemente({ excluir }) {
   const [produtos, setProdutos] = useState(null); // null = ainda não verificou
+  const trackRef = useRef(null);
+
+  function rola(dir) {
+    const t = trackRef.current;
+    if (t) t.scrollBy({ left: dir * Math.min(t.clientWidth * 0.8, 420), behavior: "smooth" });
+  }
 
   useEffect(() => {
     let ids = [];
@@ -55,10 +61,30 @@ export default function VistosRecentemente({ excluir }) {
 
   return (
     <section className="mt-14">
-      <h2 className="mb-4 text-2xl font-semibold tracking-tight text-cc-ink">
-        Vistos <span className="serif-accent text-[1.15em]">recentemente</span>
-      </h2>
-      <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
+      <div className="mb-4 flex items-end justify-between">
+        <h2 className="text-2xl font-semibold tracking-tight text-cc-ink">
+          Vistos <span className="serif-accent text-[1.15em]">recentemente</span>
+        </h2>
+        {produtos.length > 2 ? (
+          <div className="flex gap-1.5">
+            <button
+              onClick={() => rola(-1)}
+              aria-label="Ver anteriores"
+              className="grid h-9 w-9 place-items-center rounded-xl border border-cc-line bg-white text-lg text-cc-ink shadow-card transition hover:bg-cc-cream"
+            >
+              ‹
+            </button>
+            <button
+              onClick={() => rola(1)}
+              aria-label="Ver próximos"
+              className="grid h-9 w-9 place-items-center rounded-xl border border-cc-line bg-white text-lg text-cc-ink shadow-card transition hover:bg-cc-cream"
+            >
+              ›
+            </button>
+          </div>
+        ) : null}
+      </div>
+      <div ref={trackRef} className="no-scrollbar flex gap-4 overflow-x-auto scroll-smooth pb-2">
         {produtos.map((p) => (
           <div key={p.id} className="w-[42%] shrink-0 sm:w-[200px]">
             <ProductCard produto={p} />
