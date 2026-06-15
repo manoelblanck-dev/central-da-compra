@@ -9,6 +9,7 @@ import {
   detectarPlataforma,
   normalizarPlataforma,
   normalizarCategoria,
+  gerarSlug,
 } from "@/lib/constantes";
 
 export default function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS }) {
@@ -37,6 +38,7 @@ export default function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS }
           avaliacoes,
           imagem,
           comissao,
+          subcategoria,
         ] = partes;
         // O campo de imagem aceita VÁRIAS URLs separadas por vírgula:
         // a primeira vira a foto principal e o resto vai pra galeria.
@@ -56,6 +58,7 @@ export default function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS }
           imagem_url: fotos[0] || "",
           imagens: fotos.slice(1),
           comissao_percent: comissao || "",
+          subcategoria: subcategoria ? gerarSlug(subcategoria) : "",
         };
       });
   }
@@ -108,7 +111,7 @@ export default function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS }
           <p className="font-semibold">Um produto por linha, separando os campos por “|”:</p>
           <p className="mt-1 font-mono text-[11px] leading-relaxed">
             Nome | Link | Preço | Preço antigo | Categoria | Plataforma | Nota | Avaliações | Imagem
-            | Comissão %
+            | Comissão % | Subcategoria
           </p>
           <p className="mt-2 text-cc-muted">
             Só <b>Nome</b> e <b>Link</b> são obrigatórios. O resto é opcional — deixe vazio entre
@@ -116,7 +119,8 @@ export default function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS }
             <b> plataforma</b> é detectada pelo link se ficar vazia. A <b>categoria</b> pode ser o
             nome ou o atalho dela (use a aba “Categorias” para criar novas antes). No campo{" "}
             <b>Imagem</b>, dá pra colar várias URLs separadas por vírgula (a 1ª é a principal, o
-            resto vira galeria).
+            resto vira galeria). A <b>subcategoria</b> (último campo, opcional) deve existir na
+            categoria escolhida — crie-as antes na aba “Categorias”.
           </p>
           <p className="mt-2 text-cc-muted">Exemplo com todos os campos preenchidos:</p>
           <p className="mt-1 break-all font-mono text-[11px] text-cc-muted">

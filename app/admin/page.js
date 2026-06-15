@@ -22,6 +22,7 @@ const PRODUTO_VAZIO = {
   link_afiliado: "",
   plataforma: "shopee",
   categoria: "outros",
+  subcategoria: "",
   destaque: false,
   nota: "",
   avaliacoes: "",
@@ -44,12 +45,15 @@ export default function AdminPage() {
   const [aba, setAba] = useState("produtos"); // produtos | categorias | cupons | jogo
   const [busca, setBusca] = useState(""); // busca na tabela de produtos
   const [ordem, setOrdem] = useState("recentes"); // ordenação da tabela
-  const [filtro, setFiltro] = useState("todos"); // todos | incompletos
+  const [filtro, setFiltro] = useState("todos"); // todos | incompletos | destaque | semdestaque
+  const [filtroCategoria, setFiltroCategoria] = useState(""); // "" = todas
   const [loteCategoria, setLoteCategoria] = useState(""); // edição em lote: categoria
   const [loteComissao, setLoteComissao] = useState(""); // edição em lote: comissão %
   const [aplicandoLote, setAplicandoLote] = useState(false);
   // Lista completa de categorias (fixas + criadas pelo usuário).
   const [categorias, setCategorias] = useState(CATEGORIAS);
+  // Mapa de subcategorias { catSlug: [{ slug, nome }] }.
+  const [subcategorias, setSubcategorias] = useState({});
 
   const carregar = useCallback(async () => {
     setCarregando(true);
@@ -77,10 +81,23 @@ export default function AdminPage() {
     }
   }, []);
 
+  // Busca o mapa de subcategorias (config) pra usar no formulário.
+  const carregarSubcategorias = useCallback(async () => {
+    try {
+      const res = await fetch("/api/config?chave=subcategorias");
+      const data = await res.json();
+      const v = data?.valor;
+      setSubcategorias(v && typeof v === "object" && !Array.isArray(v) ? v : {});
+    } catch {
+      setSubcategorias({});
+    }
+  }, []);
+
   useEffect(() => {
     carregar();
     carregarCategorias();
-  }, [carregar, carregarCategorias]);
+    carregarSubcategorias();
+  }, [carregar, carregarCategorias, carregarSubcategorias]);
 
   function novo() {
     setErro("");
@@ -98,6 +115,7 @@ export default function AdminPage() {
       nota: p.nota ?? "",
       avaliacoes: p.avaliacoes ?? "",
       comissao_percent: p.comissao_percent ?? "",
+      subcategoria: p.subcategoria ?? "",
       imagens: Array.isArray(p.imagens) ? p.imagens : [],
     });
   }
@@ -145,8 +163,32 @@ export default function AdminPage() {
       nota: p.nota ?? "",
       avaliacoes: p.avaliacoes ?? "",
       comissao_percent: p.comissao_percent ?? "",
+      subcategoria: p.subcategoria ?? "",
       imagens: Array.isArray(p.imagens) ? p.imagens : [],
     });
+  }
+
+  // Liga/desliga o destaque de um produto (entra/sai de "Ofertas da Semana")
+  // direto pela tabela, sem abrir o formulário. Usa o PATCH em lote (1 id).
+  async function toggleDestaque(p) {
+    try {
+      const res = await fetch("/api/produtos/lote", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [p.id], destaque: !p.destaque }),
+      });
+      if (res.ok) {
+        // Atualiza na hora, sem recarregar tudo.
+        setProdutos((lista) =>
+          lista.map((x) => (x.id === p.id ? { ...x, destaque: !p.destaque } : x))
+        );
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.erro || "Não foi possível alterar o destaque.");
+      }
+    } catch {
+      alert("Erro de conexão.");
+    }
   }
 
   // Aplica um campo (categoria ou comissão) a todos os produtos selecionados.
@@ -304,7 +346,13 @@ export default function AdminPage() {
     !p.comissao_percent;
   const produtosExibidos = produtos
     .filter((p) => !termoBusca || (p.nome || "").toLowerCase().includes(termoBusca))
-    .filter((p) => filtro !== "incompletos" || incompleto(p))
+    .filter((p) => {
+      if (filtro === "incompletos") return incompleto(p);
+      if (filtro === "destaque") return !!p.destaque;
+      if (filtro === "semdestaque") return !p.destaque;
+      return true;
+    })
+    .filter((p) => !filtroCategoria || p.categoria === filtroCategoria)
     .sort(ordenarTabela);
   const totalIncompletos = produtos.filter(incompleto).length;
 
@@ -466,11 +514,25 @@ export default function AdminPage() {
                 className="flex-1 rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow focus:ring-2 focus:ring-cc-yellow/30"
               />
               <select
+                value={filtroCategoria}
+                onChange={(e) => setFiltroCategoria(e.target.value)}
+                className="rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow"
+              >
+                <option value="">Todas as categorias</option>
+                {categorias.map((c) => (
+                  <option key={c.slug} value={c.slug}>
+                    {c.nome}
+                  </option>
+                ))}
+              </select>
+              <select
                 value={filtro}
                 onChange={(e) => setFiltro(e.target.value)}
                 className="rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow"
               >
                 <option value="todos">Todos</option>
+                <option value="destaque">Em destaque</option>
+                <option value="semdestaque">Sem destaque</option>
                 <option value="incompletos">
                   Incompletos{totalIncompletos > 0 ? ` (${totalIncompletos})` : ""}
                 </option>
@@ -575,6 +637,22 @@ export default function AdminPage() {
                         <td className="px-4 py-3">
                           <div className="flex justify-end gap-2">
                             <button
+                              onClick={() => toggleDestaque(p)}
+                              title={
+                                p.destaque
+                                  ? "Tirar de “Ofertas da Semana”"
+                                  : "Colocar em “Ofertas da Semana”"
+                              }
+                              aria-label={p.destaque ? "Tirar destaque" : "Destacar"}
+                              className={`rounded-lg border px-2.5 py-1.5 text-xs font-bold transition ${
+                                p.destaque
+                                  ? "border-cc-yellow-dark bg-cc-yellow text-cc-ink"
+                                  : "border-cc-line text-cc-muted hover:bg-cc-cream"
+                              }`}
+                            >
+                              {p.destaque ? "★" : "☆"}
+                            </button>
+                            <button
                               onClick={() => editar(p)}
                               className="rounded-lg border border-cc-line px-3 py-1.5 text-xs font-medium text-cc-ink hover:bg-cc-cream"
                             >
@@ -628,6 +706,7 @@ export default function AdminPage() {
           salvando={salvando}
           erro={erro}
           categorias={categorias}
+          subcategorias={subcategorias}
         />
       ) : null}
 

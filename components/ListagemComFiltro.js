@@ -20,6 +20,7 @@ export default function ListagemComFiltro({
   contexto,
   porPagina = 12,
   categorias = CATEGORIAS,
+  subcategorias = [],
 }) {
   const [produtos, setProdutos] = useState(inicial);
   const [offset, setOffset] = useState(inicial.length);
@@ -32,12 +33,14 @@ export default function ListagemComFiltro({
   const [precoMax, setPrecoMax] = useState(MAXP);
   const [plataformas, setPlataformas] = useState([]);
   const [ordenar, setOrdenar] = useState("recentes");
+  const [subAtiva, setSubAtiva] = useState(""); // "" = todas as subcategorias
 
   const primeira = useRef(true);
 
   function montaQuery(off) {
     let q = supabase.from("produtos").select("*");
     if (contexto.tipo === "categoria") q = q.eq("categoria", contexto.slug);
+    if (contexto.tipo === "categoria" && subAtiva) q = q.eq("subcategoria", subAtiva);
     if (contexto.tipo === "ofertas") q = q.eq("destaque", true);
     if (plataformas.length) q = q.in("plataforma", plataformas);
     if (precoMin > 0) q = q.gte("preco", precoMin);
@@ -81,7 +84,7 @@ export default function ListagemComFiltro({
     const t = setTimeout(aplicar, 350);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [precoMin, precoMax, plataformas, ordenar]);
+  }, [precoMin, precoMax, plataformas, ordenar, subAtiva]);
 
   function togglePlat(id) {
     setPlataformas((ps) => (ps.includes(id) ? ps.filter((x) => x !== id) : [...ps, id]));
@@ -91,6 +94,7 @@ export default function ListagemComFiltro({
     setPrecoMax(MAXP);
     setPlataformas([]);
     setOrdenar("recentes");
+    setSubAtiva("");
   }
 
   const fillLeft = (precoMin / MAXP) * 100;
@@ -225,6 +229,34 @@ export default function ListagemComFiltro({
         <aside className="sticky top-28 hidden md:block">{Sidebar}</aside>
 
         <div>
+          {/* Filtro de subcategoria (chips) — só na página de categoria que tiver. */}
+          {subcategorias.length > 0 ? (
+            <div className="no-scrollbar mb-4 flex gap-2 overflow-x-auto pb-1">
+              <button
+                onClick={() => setSubAtiva("")}
+                className={`shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
+                  subAtiva === ""
+                    ? "border-cc-ink bg-cc-ink text-white"
+                    : "border-cc-line bg-white text-cc-ink hover:bg-cc-cream"
+                }`}
+              >
+                Todos
+              </button>
+              {subcategorias.map((s) => (
+                <button
+                  key={s.slug}
+                  onClick={() => setSubAtiva(s.slug)}
+                  className={`shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
+                    subAtiva === s.slug
+                      ? "border-cc-ink bg-cc-ink text-white"
+                      : "border-cc-line bg-white text-cc-ink hover:bg-cc-cream"
+                  }`}
+                >
+                  {s.nome}
+                </button>
+              ))}
+            </div>
+          ) : null}
           {recarregando ? (
             <SkeletonGrid count={8} />
           ) : (

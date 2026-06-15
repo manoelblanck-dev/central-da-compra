@@ -11,6 +11,13 @@ export default function SecaoCategorias({ categorias = CATEGORIAS, aoMudar }) {
   const [emoji, setEmoji] = useState("");
   const [msg, setMsg] = useState("");
 
+  // Subcategorias: mapa { catSlug: [{ slug, nome }] }.
+  const [subMapa, setSubMapa] = useState({});
+  const [catSel, setCatSel] = useState("");
+  const [subNome, setSubNome] = useState("");
+  const [salvandoSub, setSalvandoSub] = useState(false);
+  const [msgSub, setMsgSub] = useState("");
+
   const fixas = CATEGORIAS;
 
   const carregar = useCallback(async () => {
@@ -26,9 +33,21 @@ export default function SecaoCategorias({ categorias = CATEGORIAS, aoMudar }) {
     setCarregando(false);
   }, []);
 
+  const carregarSub = useCallback(async () => {
+    try {
+      const res = await fetch("/api/config?chave=subcategorias");
+      const data = await res.json();
+      const v = data?.valor;
+      setSubMapa(v && typeof v === "object" && !Array.isArray(v) ? v : {});
+    } catch {
+      /* ignora */
+    }
+  }, []);
+
   useEffect(() => {
     carregar();
-  }, [carregar]);
+    carregarSub();
+  }, [carregar, carregarSub]);
 
   async function persistir(nova) {
     setSalvando(true);
@@ -87,6 +106,70 @@ export default function SecaoCategorias({ categorias = CATEGORIAS, aoMudar }) {
       return;
     persistir(custom.filter((c) => c.slug !== slug));
   }
+
+  async function persistirSub(novo) {
+    setSalvandoSub(true);
+    setMsgSub("");
+    try {
+      const res = await fetch("/api/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chave: "subcategorias", valor: novo }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSubMapa(novo);
+        setMsgSub("✅ Subcategorias atualizadas!");
+        aoMudar?.();
+      } else {
+        setMsgSub(data.erro || "Erro ao salvar.");
+      }
+    } catch {
+      setMsgSub("Erro de conexão.");
+    } finally {
+      setSalvandoSub(false);
+    }
+  }
+
+  function adicionarSub() {
+    if (!catSel) {
+      setMsgSub("Escolha uma categoria primeiro.");
+      return;
+    }
+    const n = subNome.trim();
+    if (!n) {
+      setMsgSub("Informe o nome da subcategoria.");
+      return;
+    }
+    const slug = gerarSlug(n);
+    if (!slug) {
+      setMsgSub("Nome inválido — use letras ou números.");
+      return;
+    }
+    const atuais = Array.isArray(subMapa[catSel]) ? subMapa[catSel] : [];
+    if (atuais.some((s) => s.slug === slug)) {
+      setMsgSub("Essa subcategoria já existe nessa categoria.");
+      return;
+    }
+    persistirSub({ ...subMapa, [catSel]: [...atuais, { slug, nome: n }] });
+    setSubNome("");
+  }
+
+  function removerSub(catSlug, subSlug) {
+    if (
+      !confirm(
+        "Remover esta subcategoria? Os produtos nela continuam existindo, mas a subcategoria some dos filtros."
+      )
+    )
+      return;
+    const restantes = (subMapa[catSlug] || []).filter((s) => s.slug !== subSlug);
+    const novo = { ...subMapa };
+    if (restantes.length) novo[catSlug] = restantes;
+    else delete novo[catSlug];
+    persistirSub(novo);
+  }
+
+  const nomeCat = (slug) => categorias.find((c) => c.slug === slug)?.nome || slug;
 
   const campo =
     "w-full rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow focus:ring-2 focus:ring-cc-yellow/30";
@@ -188,6 +271,93 @@ export default function SecaoCategorias({ categorias = CATEGORIAS, aoMudar }) {
             </span>
           ))}
         </div>
+      </div>
+
+      {/* subcategorias */}
+      <div className="mt-8 border-t border-cc-line pt-6">
+        <h3 className="cc-mono text-lg text-cc-ink">📂 Subcategorias</h3>
+        <p className="mt-1 text-xs text-cc-muted">
+          Divida uma categoria em partes (ex.: Moda → Camisas, Vestidos, Bolsas, Tênis). No site,
+          elas viram filtros no topo da página da categoria. Depois é só escolhê-las ao cadastrar o
+          produto.
+        </p>
+
+        <div className="mt-4 flex flex-wrap items-end gap-2">
+          <div className="min-w-[160px]">
+            <label className="mb-1 block text-xs font-medium text-cc-ink">Categoria</label>
+            <select
+              value={catSel}
+              onChange={(e) => {
+                setCatSel(e.target.value);
+                setMsgSub("");
+              }}
+              className={campo}
+            >
+              <option value="">Escolha...</option>
+              {categorias.map((c) => (
+                <option key={c.slug} value={c.slug}>
+                  {c.nome}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="min-w-[180px] flex-1">
+            <label className="mb-1 block text-xs font-medium text-cc-ink">
+              Nome da subcategoria
+            </label>
+            <input
+              value={subNome}
+              onChange={(e) => setSubNome(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  adicionarSub();
+                }
+              }}
+              className={campo}
+              placeholder="Ex.: Camisas, Vestidos, Bolsas..."
+              disabled={!catSel}
+            />
+          </div>
+          <button
+            onClick={adicionarSub}
+            disabled={salvandoSub || !catSel}
+            className="bg-cc-yellow px-5 py-2.5 text-sm font-bold text-cc-ink transition hover:bg-cc-yellow-dark disabled:opacity-60"
+          >
+            {salvandoSub ? "Salvando..." : "+ Criar"}
+          </button>
+        </div>
+        {msgSub ? <p className="mt-2 text-sm text-cc-ink">{msgSub}</p> : null}
+
+        {catSel ? (
+          <div className="mt-4">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-cc-muted">
+              Subcategorias de {nomeCat(catSel)}
+            </p>
+            {(subMapa[catSel] || []).length === 0 ? (
+              <p className="text-sm text-cc-muted">Nenhuma ainda nessa categoria.</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {(subMapa[catSel] || []).map((s) => (
+                  <span
+                    key={s.slug}
+                    className="inline-flex items-center gap-2 rounded-full border border-cc-line bg-cc-cream/50 px-3 py-1.5 text-sm text-cc-ink"
+                  >
+                    {s.nome}
+                    <button
+                      onClick={() => removerSub(catSel, s.slug)}
+                      disabled={salvandoSub}
+                      aria-label={`Remover ${s.nome}`}
+                      className="text-cc-muted hover:text-red-600"
+                    >
+                      ✕
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : null}
       </div>
     </div>
   );

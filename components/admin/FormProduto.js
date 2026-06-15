@@ -7,8 +7,18 @@ import {
   formatarPreco,
   detectarPlataforma,
 } from "@/lib/constantes";
+import { subcategoriasDe } from "@/lib/subcategorias";
 
-export default function FormProduto({ form, setForm, salvar, fechar, salvando, erro, categorias = CATEGORIAS }) {
+export default function FormProduto({
+  form,
+  setForm,
+  salvar,
+  fechar,
+  salvando,
+  erro,
+  categorias = CATEGORIAS,
+  subcategorias = {},
+}) {
   const [enviando, setEnviando] = useState(false);
   const [erroUpload, setErroUpload] = useState("");
   const [buscandoML, setBuscandoML] = useState(false);
@@ -161,6 +171,9 @@ export default function FormProduto({ form, setForm, salvar, fechar, salvando, e
   const campo =
     "w-full rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow focus:ring-2 focus:ring-cc-yellow/30";
   const rotulo = "mb-1 block text-sm font-medium text-cc-ink";
+
+  // Subcategorias disponíveis para a categoria escolhida (pode ser vazio).
+  const subDaCategoria = subcategoriasDe(subcategorias, form.categoria);
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4">
@@ -355,13 +368,33 @@ export default function FormProduto({ form, setForm, salvar, fechar, salvando, e
             </div>
             <div>
               <label className={rotulo}>Categoria</label>
-              <select value={form.categoria} onChange={set("categoria")} className={campo}>
+              <select
+                value={form.categoria}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, categoria: e.target.value, subcategoria: "" }))
+                }
+                className={campo}
+              >
                 {categorias.map((c) => (
                   <option key={c.slug} value={c.slug}>{c.nome}</option>
                 ))}
               </select>
             </div>
           </div>
+
+          {/* Subcategoria — só aparece se a categoria escolhida tiver alguma.
+              Crie/edite as subcategorias na aba “Categorias” do painel. */}
+          {subDaCategoria.length > 0 ? (
+            <div>
+              <label className={rotulo}>Subcategoria</label>
+              <select value={form.subcategoria || ""} onChange={set("subcategoria")} className={campo}>
+                <option value="">— Nenhuma —</option>
+                {subDaCategoria.map((s) => (
+                  <option key={s.slug} value={s.slug}>{s.nome}</option>
+                ))}
+              </select>
+            </div>
+          ) : null}
 
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -400,9 +433,19 @@ export default function FormProduto({ form, setForm, salvar, fechar, salvando, e
             <textarea value={form.descricao} onChange={set("descricao")} className={campo} rows={3} />
           </div>
 
-          <label className="flex items-center gap-2 text-sm text-cc-ink">
-            <input type="checkbox" checked={!!form.destaque} onChange={set("destaque")} className="h-4 w-4 accent-cc-yellow" />
-            Mostrar na seção “Em destaque” da home
+          <label className="flex items-start gap-2 text-sm text-cc-ink">
+            <input
+              type="checkbox"
+              checked={!!form.destaque}
+              onChange={set("destaque")}
+              className="mt-0.5 h-4 w-4 accent-cc-yellow"
+            />
+            <span>
+              Destacar em <b>“Ofertas da Semana”</b> da home
+              <span className="block text-xs text-cc-muted">
+                Você escolhe a dedo quais produtos aparecem ali (não depende de cliques).
+              </span>
+            </span>
           </label>
 
           {erro ? (

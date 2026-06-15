@@ -48,6 +48,7 @@ function montarProduto(body) {
     link_afiliado: body.link_afiliado?.trim() || "",
     plataforma: body.plataforma || "shopee",
     categoria: body.categoria || "outros",
+    subcategoria: body.subcategoria?.toString().trim() || null,
     destaque: !!body.destaque,
     nota,
     avaliacoes,

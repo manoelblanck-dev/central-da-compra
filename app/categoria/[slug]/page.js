@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { nomeCategoria } from "@/lib/constantes";
 import { getTodasCategorias } from "@/lib/categorias";
+import { getSubcategoriasMapa, subcategoriasDe } from "@/lib/subcategorias";
 import ListagemComFiltro from "@/components/ListagemComFiltro";
 
 export const revalidate = 300; // cache inteligente (ISR), atualiza a cada 5 min
@@ -32,7 +33,12 @@ async function getInicial(slug) {
 export default async function CategoriaPage({ params }) {
   const slug = params.slug;
 
-  const [todas, inicial] = await Promise.all([getTodasCategorias(), getInicial(slug)]);
+  const [todas, inicial, subMapa] = await Promise.all([
+    getTodasCategorias(),
+    getInicial(slug),
+    getSubcategoriasMapa(),
+  ]);
+  const subcategorias = subcategoriasDe(subMapa, slug);
 
   // Aceita a categoria se ela existe (fixa ou criada) OU se já tem produtos.
   const existe = todas.some((c) => c.slug === slug) || inicial.length > 0;
@@ -62,6 +68,7 @@ export default async function CategoriaPage({ params }) {
         contexto={{ tipo: "categoria", slug }}
         porPagina={POR_PAGINA}
         categorias={todas}
+        subcategorias={subcategorias}
       />
     </div>
   );

@@ -85,6 +85,7 @@ export async function POST(request) {
       link_afiliado: link,
       plataforma: normalizarPlataforma(item.plataforma) || detectarPlataforma(link) || "shopee",
       categoria: item.categoria || "outros",
+      subcategoria: item.subcategoria ? item.subcategoria.toString().trim() : null,
       destaque: !!item.destaque,
       nota: nota0a5(item.nota),
       avaliacoes: avaliacoesValidas(item.avaliacoes),
