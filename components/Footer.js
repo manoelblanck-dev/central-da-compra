@@ -9,7 +9,9 @@ export default async function Footer() {
     getCategoriasComProdutos(),
     getTodasCategorias(),
   ]);
-  const categorias = todas.filter((c) => disponiveis.includes(c.slug));
+  const categorias = todas
+    .filter((c) => disponiveis.includes(c.slug))
+    .sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR", { sensitivity: "base" }));
 
   return (
     <footer className="mt-16 border-t border-cc-line bg-cc-cream/60">

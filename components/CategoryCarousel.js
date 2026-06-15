@@ -14,14 +14,34 @@ function BandeiraBrasil() {
   );
 }
 
+function IconeTodos() {
+  return (
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </svg>
+  );
+}
+
+// Ordena as categorias em ordem alfabética (pt-BR, ignorando acentos/maiúsculas)
+// e coloca "Todos" sempre como primeiro item (leva a todos os produtos).
+function montarLista(base) {
+  const ordenadas = [...base].sort((a, b) =>
+    (a.nome || "").localeCompare(b.nome || "", "pt-BR", { sensitivity: "base" })
+  );
+  return [{ slug: "__todos", nome: "Todos", href: "/produtos", todos: true }, ...ordenadas];
+}
+
 export default function CategoryCarousel({ categorias = null }) {
   const trackRef = useRef(null);
 
   // Recebe a lista de categorias a exibir (já filtrada/montada pelo servidor —
   // inclui as criadas pelo usuário e esconde as vazias). Sem lista, usa as fixas.
-  const lista = categorias && categorias.length ? categorias : CATEGORIAS;
-
-  if (lista.length === 0) return null;
+  const base = categorias && categorias.length ? categorias : CATEGORIAS;
+  if (base.length === 0) return null;
+  const lista = montarLista(base); // "Todos" primeiro + restante em ordem alfabética
 
   function rola(dir) {
     const t = trackRef.current;
@@ -56,12 +76,15 @@ export default function CategoryCarousel({ categorias = null }) {
         {lista.map((c) => {
           const copa = !!c.copa;
           const video = !!c.video;
+          const todos = !!c.todos;
           return (
             <Link
               key={c.slug}
-              href={`/categoria/${c.slug}`}
+              href={c.href || `/categoria/${c.slug}`}
               className={`flex shrink-0 items-center gap-2.5 rounded-2xl border px-4 py-2.5 text-sm font-medium shadow-card transition hover:-translate-y-0.5 hover:shadow-cardlg ${
-                copa
+                todos
+                  ? "border-cc-ink bg-cc-ink text-white"
+                  : copa
                   ? "border-br-green/30 bg-[#F2FBF5] text-br-green"
                   : video
                   ? "border-[#7A3FF2]/30 bg-[#F4F0FF] text-[#5B27C4]"
@@ -70,10 +93,10 @@ export default function CategoryCarousel({ categorias = null }) {
             >
               <span
                 className={`grid h-7 w-7 place-items-center rounded-lg text-[15px] ${
-                  copa ? "bg-[#DBF3E3]" : video ? "bg-[#E7DDFD]" : "bg-cc-cream"
+                  todos ? "bg-white/15" : copa ? "bg-[#DBF3E3]" : video ? "bg-[#E7DDFD]" : "bg-cc-cream"
                 }`}
               >
-                {copa ? <BandeiraBrasil /> : c.emoji}
+                {todos ? <IconeTodos /> : copa ? <BandeiraBrasil /> : c.emoji}
               </span>
               <span className="whitespace-nowrap">{c.nome}</span>
             </Link>

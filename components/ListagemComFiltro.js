@@ -179,19 +179,32 @@ export default function ListagemComFiltro({
       <div className="px-4 py-4">
         <p className="mb-2 text-xs font-bold uppercase tracking-wide text-cc-muted">Categorias</p>
         <div className="flex flex-col gap-1.5 text-sm">
-          {(categorias && categorias.length ? categorias : CATEGORIAS).map((c) => (
-            <Link
-              key={c.slug}
-              href={`/categoria/${c.slug}`}
-              className={`hover:text-cc-ink ${
-                contexto.tipo === "categoria" && contexto.slug === c.slug
-                  ? "font-semibold text-cc-ink"
-                  : "text-cc-muted"
-              }`}
-            >
-              {c.nome}
-            </Link>
-          ))}
+          <Link
+            href="/produtos"
+            className={`hover:text-cc-ink ${
+              contexto.tipo === "todos" ? "font-semibold text-cc-ink" : "text-cc-muted"
+            }`}
+          >
+            Todos
+          </Link>
+          {(categorias && categorias.length ? categorias : CATEGORIAS)
+            .slice()
+            .sort((a, b) =>
+              (a.nome || "").localeCompare(b.nome || "", "pt-BR", { sensitivity: "base" })
+            )
+            .map((c) => (
+              <Link
+                key={c.slug}
+                href={`/categoria/${c.slug}`}
+                className={`hover:text-cc-ink ${
+                  contexto.tipo === "categoria" && contexto.slug === c.slug
+                    ? "font-semibold text-cc-ink"
+                    : "text-cc-muted"
+                }`}
+              >
+                {c.nome}
+              </Link>
+            ))}
         </div>
       </div>
     </div>
