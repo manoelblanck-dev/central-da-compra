@@ -145,3 +145,51 @@ export async function DELETE(request) {
   revalidarProdutos();
   return NextResponse.json({ excluidos: validos.length });
 }
+
+// PATCH: edita em lote — aplica categoria e/ou comissão aos ids enviados.
+export async function PATCH(request) {
+  if (!(await autorizado(request))) {
+    return NextResponse.json({ erro: "Não autorizado." }, { status: 401 });
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ erro: "Envio inválido." }, { status: 400 });
+  }
+
+  const ids = Array.isArray(body?.ids)
+    ? [...new Set(body.ids)].filter((id) => typeof id === "string" && UUID_REGEX.test(id))
+    : [];
+  if (ids.length === 0) {
+    return NextResponse.json({ erro: "Nenhum produto válido selecionado." }, { status: 400 });
+  }
+  if (ids.length > 200) {
+    return NextResponse.json({ erro: "Máximo de 200 produtos por vez." }, { status: 400 });
+  }
+
+  // Só permite alterar campos seguros, em lote.
+  const campos = {};
+  if (typeof body.categoria === "string" && body.categoria.trim()) {
+    campos.categoria = body.categoria.trim();
+  }
+  if (body.comissao_percent !== undefined && body.comissao_percent !== "") {
+    campos.comissao_percent = comissaoValida(body.comissao_percent);
+  }
+  if (typeof body.destaque === "boolean") {
+    campos.destaque = body.destaque;
+  }
+
+  if (Object.keys(campos).length === 0) {
+    return NextResponse.json({ erro: "Nada para alterar." }, { status: 400 });
+  }
+
+  const { error } = await supabaseAdmin.from("produtos").update(campos).in("id", ids);
+  if (error) {
+    return NextResponse.json({ erro: error.message }, { status: 400 });
+  }
+
+  revalidarProdutos();
+  return NextResponse.json({ atualizados: ids.length });
+}

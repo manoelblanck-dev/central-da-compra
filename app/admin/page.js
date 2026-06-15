@@ -45,6 +45,10 @@ export default function AdminPage() {
   const [aba, setAba] = useState("produtos"); // produtos | categorias | cupons | jogo
   const [busca, setBusca] = useState(""); // busca na tabela de produtos
   const [ordem, setOrdem] = useState("recentes"); // ordenação da tabela
+  const [filtro, setFiltro] = useState("todos"); // todos | incompletos
+  const [loteCategoria, setLoteCategoria] = useState(""); // edição em lote: categoria
+  const [loteComissao, setLoteComissao] = useState(""); // edição em lote: comissão %
+  const [aplicandoLote, setAplicandoLote] = useState(false);
   // Lista completa de categorias (fixas + criadas pelo usuário).
   const [categorias, setCategorias] = useState(CATEGORIAS);
 
@@ -123,6 +127,52 @@ export default function AdminPage() {
       setErro("Erro de conexão.");
     } finally {
       setSalvando(false);
+    }
+  }
+
+  // Abre o formulário com os dados de um produto, mas SEM id — assim salvar
+  // cria um novo (cópia), em vez de editar o original.
+  function duplicar(p) {
+    setErro("");
+    setForm({
+      ...PRODUTO_VAZIO,
+      ...p,
+      id: undefined,
+      nome: `${p.nome || ""} (cópia)`,
+      preco: p.preco ?? "",
+      preco_antigo: p.preco_antigo ?? "",
+      descricao: p.descricao ?? "",
+      imagem_url: p.imagem_url ?? "",
+      nota: p.nota ?? "",
+      avaliacoes: p.avaliacoes ?? "",
+      comissao_percent: p.comissao_percent ?? "",
+      imagens: Array.isArray(p.imagens) ? p.imagens : [],
+    });
+  }
+
+  // Aplica um campo (categoria ou comissão) a todos os produtos selecionados.
+  async function aplicarEmLote(campos) {
+    if (selecionados.length === 0) return;
+    setAplicandoLote(true);
+    try {
+      const res = await fetch("/api/produtos/lote", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selecionados, ...campos }),
+      });
+      if (res.ok) {
+        setSelecionados([]);
+        setLoteCategoria("");
+        setLoteComissao("");
+        await carregar();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.erro || "Não foi possível aplicar a alteração.");
+      }
+    } catch {
+      alert("Erro de conexão.");
+    } finally {
+      setAplicandoLote(false);
     }
   }
 
@@ -246,9 +296,18 @@ export default function AdminPage() {
     if (ordem === "menor") return (Number(a.preco) || 0) - (Number(b.preco) || 0);
     return new Date(b.criado_em || 0) - new Date(a.criado_em || 0); // recentes
   };
+  // Produto "incompleto" = falta foto, preço ou comissão (precisa de atenção).
+  const incompleto = (p) =>
+    !p.imagem_url ||
+    p.preco === null ||
+    p.preco === undefined ||
+    p.preco === "" ||
+    !p.comissao_percent;
   const produtosExibidos = produtos
     .filter((p) => !termoBusca || (p.nome || "").toLowerCase().includes(termoBusca))
+    .filter((p) => filtro !== "incompletos" || incompleto(p))
     .sort(ordenarTabela);
+  const totalIncompletos = produtos.filter(incompleto).length;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -331,23 +390,67 @@ export default function AdminPage() {
 
           {/* ações em lote */}
           {selecionados.length > 0 ? (
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5">
-              <p className="text-sm text-red-700">
-                {selecionados.length} produto(s) selecionado(s)
-              </p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setSelecionados([])}
-                  className="rounded-lg border border-cc-line bg-white px-3 py-1.5 text-xs font-medium text-cc-ink hover:bg-cc-cream"
+            <div className="mt-4 space-y-2.5 rounded-xl border border-cc-line bg-cc-cream/50 px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-semibold text-cc-ink">
+                  {selecionados.length} produto(s) selecionado(s)
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setSelecionados([])}
+                    className="rounded-lg border border-cc-line bg-white px-3 py-1.5 text-xs font-medium text-cc-ink hover:bg-cc-cream"
+                  >
+                    Limpar seleção
+                  </button>
+                  <button
+                    onClick={excluirSelecionados}
+                    disabled={excluindoLote}
+                    className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+                  >
+                    {excluindoLote ? "Excluindo..." : "Excluir selecionados"}
+                  </button>
+                </div>
+              </div>
+
+              {/* aplicar categoria / comissão aos selecionados */}
+              <div className="flex flex-wrap items-center gap-2 border-t border-cc-line pt-2.5">
+                <span className="text-xs font-medium text-cc-muted">Aplicar a todos:</span>
+                <select
+                  value={loteCategoria}
+                  onChange={(e) => setLoteCategoria(e.target.value)}
+                  className="rounded-lg border border-cc-line bg-white px-2.5 py-1.5 text-xs outline-none focus:border-cc-yellow"
                 >
-                  Limpar seleção
+                  <option value="">Categoria...</option>
+                  {categorias.map((c) => (
+                    <option key={c.slug} value={c.slug}>
+                      {c.nome}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={() => aplicarEmLote({ categoria: loteCategoria })}
+                  disabled={aplicandoLote || !loteCategoria}
+                  className="rounded-lg border border-cc-line bg-white px-3 py-1.5 text-xs font-medium text-cc-ink hover:bg-cc-cream disabled:opacity-50"
+                >
+                  Aplicar
                 </button>
+                <span className="ml-2 text-xs text-cc-line">|</span>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="100"
+                  value={loteComissao}
+                  onChange={(e) => setLoteComissao(e.target.value)}
+                  placeholder="Comissão %"
+                  className="w-28 rounded-lg border border-cc-line bg-white px-2.5 py-1.5 text-xs outline-none focus:border-cc-yellow"
+                />
                 <button
-                  onClick={excluirSelecionados}
-                  disabled={excluindoLote}
-                  className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+                  onClick={() => aplicarEmLote({ comissao_percent: loteComissao })}
+                  disabled={aplicandoLote || loteComissao === ""}
+                  className="rounded-lg border border-cc-line bg-white px-3 py-1.5 text-xs font-medium text-cc-ink hover:bg-cc-cream disabled:opacity-50"
                 >
-                  {excluindoLote ? "Excluindo..." : "Excluir selecionados"}
+                  Aplicar
                 </button>
               </div>
             </div>
@@ -363,6 +466,16 @@ export default function AdminPage() {
                 placeholder="Buscar produto pelo nome..."
                 className="flex-1 rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow focus:ring-2 focus:ring-cc-yellow/30"
               />
+              <select
+                value={filtro}
+                onChange={(e) => setFiltro(e.target.value)}
+                className="rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow"
+              >
+                <option value="todos">Todos</option>
+                <option value="incompletos">
+                  Incompletos{totalIncompletos > 0 ? ` (${totalIncompletos})` : ""}
+                </option>
+              </select>
               <select
                 value={ordem}
                 onChange={(e) => setOrdem(e.target.value)}
@@ -465,6 +578,12 @@ export default function AdminPage() {
                               className="rounded-lg border border-cc-line px-3 py-1.5 text-xs font-medium text-cc-ink hover:bg-cc-cream"
                             >
                               Editar
+                            </button>
+                            <button
+                              onClick={() => duplicar(p)}
+                              className="rounded-lg border border-cc-line px-3 py-1.5 text-xs font-medium text-cc-ink hover:bg-cc-cream"
+                            >
+                              Duplicar
                             </button>
                             <button
                               onClick={() => excluir(p)}
