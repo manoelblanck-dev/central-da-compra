@@ -698,7 +698,13 @@ export default function AdminPage() {
       {aba === "desempenho" ? <SecaoDesempenho /> : null}
 
       {/* aba: oferta do dia (fila manual) */}
-      {aba === "oferta" ? <SecaoOfertaDia produtos={produtos} /> : null}
+      {aba === "oferta" ? (
+        <SecaoOfertaDia
+          produtos={produtos}
+          categorias={categorias}
+          subcategorias={subcategorias}
+        />
+      ) : null}
 
       {/* aba: categorias */}
       {aba === "categorias" ? (

@@ -15,12 +15,15 @@ function calcularAtual(fila, horas, inicioMs, repetir, nowMs) {
   return { idx, terminaEm: inicioMs + (rawIdx + 1) * dur, futuro: false };
 }
 
-export default function SecaoOfertaDia({ produtos = [] }) {
+export default function SecaoOfertaDia({ produtos = [], categorias = [], subcategorias = {} }) {
   const [fila, setFila] = useState([]); // lista de ids, em ordem
   const [horas, setHoras] = useState(12);
   const [inicio, setInicio] = useState(null); // ms
   const [repetir, setRepetir] = useState(true);
   const [busca, setBusca] = useState("");
+  const [fCat, setFCat] = useState(""); // filtro categoria
+  const [fSub, setFSub] = useState(""); // filtro subcategoria
+  const [ordem, setOrdem] = useState("cliques"); // ordenação do buscador
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [msg, setMsg] = useState("");
@@ -130,12 +133,35 @@ export default function SecaoOfertaDia({ produtos = [] }) {
     }
   }
 
+  const catNome = useMemo(() => {
+    const m = {};
+    for (const c of categorias) m[c.slug] = c.nome;
+    return m;
+  }, [categorias]);
+
+  // Subcategorias da categoria filtrada (para o seletor de subcategoria).
+  const subDaCat = fCat && Array.isArray(subcategorias[fCat]) ? subcategorias[fCat] : [];
+
+  const naFila = useMemo(() => new Set(fila), [fila]);
   const termo = busca.trim().toLowerCase();
-  const matches = termo
-    ? produtos
-        .filter((p) => (p.nome || "").toLowerCase().includes(termo) && !fila.includes(p.id))
-        .slice(0, 8)
-    : [];
+
+  function ordenar(a, b) {
+    if (ordem === "maior") return (Number(b.preco) || 0) - (Number(a.preco) || 0);
+    if (ordem === "menor") return (Number(a.preco) || 0) - (Number(b.preco) || 0);
+    if (ordem === "avaliacao") return (Number(b.nota) || 0) - (Number(a.nota) || 0);
+    if (ordem === "desconto")
+      return (Number(b.desconto_percent) || 0) - (Number(a.desconto_percent) || 0);
+    if (ordem === "recentes") return new Date(b.criado_em || 0) - new Date(a.criado_em || 0);
+    return (b.cliques || 0) - (a.cliques || 0); // mais cliques (padrão)
+  }
+
+  const disponiveis = produtos
+    .filter((p) => !naFila.has(p.id))
+    .filter((p) => !termo || (p.nome || "").toLowerCase().includes(termo))
+    .filter((p) => !fCat || p.categoria === fCat)
+    .filter((p) => !fSub || (Array.isArray(p.subcategorias) && p.subcategorias.includes(fSub)))
+    .sort(ordenar);
+  const visiveis = disponiveis.slice(0, 50);
 
   function tempoRestante(terminaEm) {
     let d = Math.max(0, terminaEm - agora);
@@ -225,20 +251,69 @@ export default function SecaoOfertaDia({ produtos = [] }) {
             </button>
           </div>
 
-          {/* adicionar produto */}
+          {/* adicionar produto — com filtros (nome, categoria, subcategoria, ordenação) */}
           <div>
             <label className="mb-1 block text-sm font-medium text-cc-ink">
               Adicionar produto à fila
             </label>
-            <input
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              className={campo}
-              placeholder="Digite o nome do produto..."
-            />
-            {matches.length > 0 ? (
-              <div className="mt-1 divide-y divide-cc-line rounded-xl border border-cc-line">
-                {matches.map((p) => (
+            <div className="flex flex-wrap gap-2">
+              <input
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                className="min-w-[150px] flex-1 border border-cc-line px-3 py-2 text-sm outline-none focus:border-cc-yellow"
+                placeholder="Buscar pelo nome..."
+              />
+              <select
+                value={fCat}
+                onChange={(e) => {
+                  setFCat(e.target.value);
+                  setFSub("");
+                }}
+                className="border border-cc-line px-2.5 py-2 text-sm outline-none focus:border-cc-yellow"
+              >
+                <option value="">Todas as categorias</option>
+                {categorias.map((c) => (
+                  <option key={c.slug} value={c.slug}>
+                    {c.nome}
+                  </option>
+                ))}
+              </select>
+              {subDaCat.length > 0 ? (
+                <select
+                  value={fSub}
+                  onChange={(e) => setFSub(e.target.value)}
+                  className="border border-cc-line px-2.5 py-2 text-sm outline-none focus:border-cc-yellow"
+                >
+                  <option value="">Todas as subcategorias</option>
+                  {subDaCat.map((s) => (
+                    <option key={s.slug} value={s.slug}>
+                      {s.nome}
+                    </option>
+                  ))}
+                </select>
+              ) : null}
+              <select
+                value={ordem}
+                onChange={(e) => setOrdem(e.target.value)}
+                className="border border-cc-line px-2.5 py-2 text-sm outline-none focus:border-cc-yellow"
+              >
+                <option value="cliques">Mais cliques</option>
+                <option value="maior">Maior preço</option>
+                <option value="menor">Menor preço</option>
+                <option value="avaliacao">Melhor avaliação</option>
+                <option value="desconto">Maior desconto</option>
+                <option value="recentes">Mais recentes</option>
+              </select>
+            </div>
+
+            <p className="mt-2 text-xs text-cc-muted">
+              {disponiveis.length} produto(s)
+              {disponiveis.length > visiveis.length ? ` (mostrando ${visiveis.length})` : ""} ·
+              clique para adicionar à fila
+            </p>
+            {visiveis.length > 0 ? (
+              <div className="mt-1 max-h-72 divide-y divide-cc-line overflow-y-auto rounded-xl border border-cc-line">
+                {visiveis.map((p) => (
                   <button
                     key={p.id}
                     onClick={() => adicionar(p.id)}
@@ -248,15 +323,23 @@ export default function SecaoOfertaDia({ produtos = [] }) {
                     <img
                       src={p.imagem_url || "https://placehold.co/40x40/FFF8EC/211C15?text=CC"}
                       alt=""
-                      className="h-8 w-8 shrink-0 rounded object-cover"
+                      className="h-9 w-9 shrink-0 rounded object-cover"
                     />
-                    <span className="min-w-0 flex-1 truncate text-cc-ink">{p.nome}</span>
-                    <span className="shrink-0 text-cc-muted">{formatarPreco(p.preco) || "—"}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-cc-ink">{p.nome}</span>
+                      <span className="block truncate text-xs text-cc-muted">
+                        {catNome[p.categoria] || p.categoria} · {p.cliques || 0} cliques
+                        {p.nota ? ` · ★ ${p.nota}` : ""}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-cc-ink">{formatarPreco(p.preco) || "—"}</span>
                     <span className="shrink-0 font-semibold text-br-green">+ Adicionar</span>
                   </button>
                 ))}
               </div>
-            ) : null}
+            ) : (
+              <p className="mt-2 text-sm text-cc-muted">Nenhum produto com esses filtros.</p>
+            )}
           </div>
 
           {/* a fila */}
