@@ -13,6 +13,8 @@ import RegistrarVisita from "@/components/RegistrarVisita";
 import VistosRecentemente from "@/components/VistosRecentemente";
 import BarraComprarMobile from "@/components/BarraComprarMobile";
 import PixelProduto from "@/components/PixelProduto";
+import BotaoWhatsApp from "@/components/BotaoWhatsApp";
+import FaqProduto from "@/components/FaqProduto";
 import { IconEscudo, IconLojaOficial, IconRapido } from "@/components/IconesSelo";
 
 // Cache inteligente (ISR): rápida e atualizada a cada 5 min; mudanças no
@@ -110,6 +112,29 @@ export default async function ProdutoPage({ params }) {
   const temDesconto =
     produto.preco_antigo && Number(produto.preco_antigo) > Number(produto.preco);
 
+  const nomePlataforma =
+    produto.plataforma === "mercado_livre"
+      ? "Mercado Livre"
+      : produto.plataforma === "tiktok_shop"
+      ? "TikTok Shop"
+      : "Shopee";
+
+  // Perguntas rápidas (mini-FAQ) — também viram dados estruturados pro Google.
+  const faq = [
+    {
+      q: "É seguro comprar?",
+      a: `Sim. Você finaliza a compra direto na loja oficial (${nomePlataforma}), com o pagamento e a proteção dela. A Central da Compra apenas indica a oferta.`,
+    },
+    {
+      q: "Preciso me cadastrar na Central da Compra?",
+      a: "Não. Aqui você só navega e compara as ofertas. Qualquer cadastro é feito na loja, na hora de comprar.",
+    },
+    {
+      q: "E se o preço mudar?",
+      a: "Os preços podem variar a qualquer momento. Confira sempre o valor atual na página da loja antes de finalizar a compra.",
+    },
+  ];
+
   const urlProduto = `https://centraldacompraonline.com.br/produto/${produto.id}`;
   const msgWpp = `Olha essa oferta na Central da Compra 👇\n${produto.nome}\n${urlProduto}`;
   const wpp = `https://wa.me/?text=${encodeURIComponent(msgWpp)}`;
@@ -157,6 +182,17 @@ export default async function ProdutoPage({ params }) {
     ],
   };
 
+  // Perguntas frequentes (pode aparecer expandido no resultado do Google).
+  const schemaFaq = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faq.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  };
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
       <script
@@ -168,6 +204,10 @@ export default async function ProdutoPage({ params }) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaBreadcrumb).replace(/</g, "\\u003c") }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaFaq).replace(/</g, "\\u003c") }}
       />
       <RegistrarVisita id={produto.id} />
       <PixelProduto
@@ -256,6 +296,23 @@ export default async function ProdutoPage({ params }) {
             <BotaoFavorito id={produto.id} variante="linha" />
           </div>
 
+          {/* reforço de segurança — reduz o medo de clicar */}
+          <p className="mt-2.5 flex items-center gap-1.5 text-xs text-cc-muted">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              aria-hidden="true"
+              className="shrink-0 text-br-green"
+            >
+              <path d="M20 6 9 17l-5-5" />
+            </svg>
+            Você vai direto pra loja oficial ({nomePlataforma}) — pagamento e entrega são por ela.
+          </p>
+
           {/* cupom da plataforma (se houver) */}
           <CupomBox cupom={cupom} />
 
@@ -286,6 +343,9 @@ export default async function ProdutoPage({ params }) {
               </p>
             </div>
           ) : null}
+
+          {/* perguntas rápidas (mini-FAQ) */}
+          <FaqProduto itens={faq} />
         </div>
       </div>
 
@@ -296,6 +356,9 @@ export default async function ProdutoPage({ params }) {
           <ProductGrid produtos={relacionados} />
         </section>
       ) : null}
+
+      {/* captura: convite pro canal de ofertas no WhatsApp (público de remarketing) */}
+      <BotaoWhatsApp variante="faixa" />
 
       {/* vistos recentemente (não mostra o produto atual) */}
       <VistosRecentemente excluir={produto.id} />
