@@ -3,16 +3,7 @@
 import Link from "next/link";
 import { useRef } from "react";
 import { CATEGORIAS } from "@/lib/constantes";
-
-function BandeiraBrasil() {
-  return (
-    <svg className="cc-bandeira" viewBox="0 0 28 20" width="18" height="13" aria-label="Bandeira do Brasil">
-      <rect width="28" height="20" fill="#009739" />
-      <polygon points="14,2.5 25.5,10 14,17.5 2.5,10" fill="#FEDD00" />
-      <circle cx="14" cy="10" r="4.1" fill="#002776" />
-    </svg>
-  );
-}
+import BandeiraBrasil from "@/components/BandeiraBrasil";
 
 function IconeTodos() {
   return (
@@ -118,7 +109,7 @@ export default function CategoryCarousel({ categorias = null }) {
                   todos ? "bg-white/15" : copa ? "bg-[#DBF3E3]" : video ? "bg-[#E7DDFD]" : "bg-cc-cream"
                 }`}
               >
-                {todos ? <IconeTodos /> : copa ? <BandeiraBrasil /> : c.emoji}
+                {todos ? <IconeTodos /> : copa ? <BandeiraBrasil className="cc-bandeira" /> : c.emoji}
               </span>
               <span className="whitespace-nowrap">{c.nome}</span>
             </Link>

@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { CATEGORIAS, nomeCategoria } from "@/lib/constantes";
 import ProductGrid from "@/components/ProductGrid";
 import SkeletonGrid from "@/components/SkeletonGrid";
+import BandeiraBrasil from "@/components/BandeiraBrasil";
 import { IconFiltro } from "@/components/IconesSelo";
 
 const MAXP = 1000; // teto do slider de preço
@@ -102,6 +103,18 @@ export default function ListagemComFiltro({
   const fillLeft = (precoMin / MAXP) * 100;
   const fillWidth = ((precoMax - precoMin) / MAXP) * 100;
 
+  // Lista de categorias da barra lateral: em ordem alfabética, mas com a
+  // Seleção Brasileira sempre em 1º (logo depois do "Todos", que fica fora do map).
+  const baseCats = categorias && categorias.length ? categorias : CATEGORIAS;
+  const ordemCategorias = (() => {
+    const ord = [...baseCats].sort((a, b) =>
+      (a.nome || "").localeCompare(b.nome || "", "pt-BR", { sensitivity: "base" })
+    );
+    const sel = ord.filter((c) => c.slug === "selecao");
+    const resto = ord.filter((c) => c.slug !== "selecao");
+    return [...sel, ...resto];
+  })();
+
   const Sidebar = (
     <div className="rounded-2xl border border-cc-line bg-white shadow-card">
       <div className="flex items-center justify-between border-b border-cc-line px-4 py-3">
@@ -184,7 +197,7 @@ export default function ListagemComFiltro({
       {/* Categorias (navegação) */}
       <div className="px-4 py-4">
         <p className="mb-2 text-xs font-bold uppercase tracking-wide text-cc-muted">Categorias</p>
-        <div className="flex flex-col gap-1.5 text-sm">
+        <div className="flex flex-col items-start gap-1.5 text-sm">
           <Link
             href="/produtos"
             className={`hover:text-cc-ink ${
@@ -193,24 +206,49 @@ export default function ListagemComFiltro({
           >
             Todos
           </Link>
-          {(categorias && categorias.length ? categorias : CATEGORIAS)
-            .slice()
-            .sort((a, b) =>
-              (a.nome || "").localeCompare(b.nome || "", "pt-BR", { sensitivity: "base" })
-            )
-            .map((c) => (
+          {ordemCategorias.map((c) => {
+            const ativa = contexto.tipo === "categoria" && contexto.slug === c.slug;
+            // A Seleção ganha uma "carinha" própria: bandeirinha, verdinho/amarelinho
+            // bem sutil e a graça de tremular no hover (.cc-copa + .cc-bandeira).
+            if (c.slug === "selecao") {
+              return (
+                <Link
+                  key={c.slug}
+                  href="/categoria/selecao"
+                  onClick={(e) => {
+                    // Mesma "varredura Copa" do carrossel ao abrir a Seleção.
+                    e.preventDefault();
+                    setDrawer(false);
+                    window.dispatchEvent(
+                      new CustomEvent("cc:varredura", {
+                        detail: { href: "/categoria/selecao" },
+                      })
+                    );
+                  }}
+                  className={`cc-copa inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-medium text-br-green transition ${
+                    ativa
+                      ? "border-br-green/45 bg-[#E6F6EC]"
+                      : "border-br-green/25 bg-gradient-to-r from-[#F2FBF5] to-[#FEF9E6] hover:from-[#EAF8EF] hover:to-[#FCF3D6]"
+                  }`}
+                >
+                  <BandeiraBrasil className="cc-bandeira" width={16} height={11} />
+                  {c.nome}
+                  <span className="text-[11px] opacity-60">⚽</span>
+                </Link>
+              );
+            }
+            return (
               <Link
                 key={c.slug}
                 href={`/categoria/${c.slug}`}
                 className={`hover:text-cc-ink ${
-                  contexto.tipo === "categoria" && contexto.slug === c.slug
-                    ? "font-semibold text-cc-ink"
-                    : "text-cc-muted"
+                  ativa ? "font-semibold text-cc-ink" : "text-cc-muted"
                 }`}
               >
                 {c.nome}
               </Link>
-            ))}
+            );
+          })}
         </div>
       </div>
     </div>
