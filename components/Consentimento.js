@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Pixels from "@/components/Pixels";
+import PixelPageView from "@/components/PixelPageView";
 
 const KEY = "cc_consent"; // "aceito" | "recusado"
 
@@ -39,8 +40,14 @@ export default function Consentimento() {
 
   return (
     <>
-      {/* Pixels só carregam após o aceite */}
-      {estado === "aceito" ? <Pixels /> : null}
+      {/* Pixels só carregam após o aceite. O PixelPageView reenvia o PageView
+          nas navegações internas (SPA) — também só depois do aceite. */}
+      {estado === "aceito" ? (
+        <>
+          <Pixels />
+          <PixelPageView />
+        </>
+      ) : null}
 
       {estado === "pendente" ? (
         <div className="fixed inset-x-0 bottom-0 z-[60] px-3 pb-3 sm:px-4">
