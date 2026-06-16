@@ -322,7 +322,15 @@ export default function SecaoDisparos({ produtos = [], categorias = [], subcateg
                         {p.nota ? ` · ★ ${p.nota}` : ""}
                       </span>
                     </span>
-                    <span className="shrink-0 text-cc-ink">{formatarPreco(p.preco) || "—"}</span>
+                    <span className="shrink-0 text-right leading-tight">
+                      <span className="block text-cc-ink">{formatarPreco(p.preco) || "—"}</span>
+                      {ganho(p) > 0 ? (
+                        <span className="block text-xs font-semibold text-br-green">
+                          ganha {formatarPreco(ganho(p))}{" "}
+                          <span className="text-cc-muted">({p.comissao_percent}%)</span>
+                        </span>
+                      ) : null}
+                    </span>
                     <span className="shrink-0 font-semibold text-br-green">+ Adicionar</span>
                   </button>
                 ))}
@@ -360,13 +368,25 @@ export default function SecaoDisparos({ produtos = [], categorias = [], subcateg
                         alt=""
                         className="h-9 w-9 shrink-0 rounded object-cover"
                       />
-                      <span className="min-w-0 flex-1 truncate text-sm text-cc-ink">
-                        {p?.nome || (
-                          <span className="text-red-600">produto removido (tire da fila)</span>
-                        )}
-                        {proximo ? (
-                          <span className="ml-2 rounded-full bg-cc-yellow px-2 py-0.5 text-[10px] font-bold text-cc-ink">
-                            PRÓXIMO
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm text-cc-ink">
+                          {p?.nome || (
+                            <span className="text-red-600">produto removido (tire da fila)</span>
+                          )}
+                          {proximo ? (
+                            <span className="ml-2 rounded-full bg-cc-yellow px-2 py-0.5 text-[10px] font-bold text-cc-ink">
+                              PRÓXIMO
+                            </span>
+                          ) : null}
+                        </span>
+                        {p ? (
+                          <span className="mt-0.5 block truncate text-xs text-cc-muted">
+                            {formatarPreco(p.preco) || "sem preço"}
+                            {ganho(p) > 0 ? (
+                              <span className="ml-1.5 font-semibold text-br-green">
+                                · ganha {formatarPreco(ganho(p))} ({p.comissao_percent}%)
+                              </span>
+                            ) : null}
                           </span>
                         ) : null}
                       </span>
