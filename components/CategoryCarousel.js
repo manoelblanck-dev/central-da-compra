@@ -6,7 +6,7 @@ import { CATEGORIAS } from "@/lib/constantes";
 
 function BandeiraBrasil() {
   return (
-    <svg viewBox="0 0 28 20" width="18" height="13" aria-label="Bandeira do Brasil">
+    <svg className="cc-bandeira" viewBox="0 0 28 20" width="18" height="13" aria-label="Bandeira do Brasil">
       <rect width="28" height="20" fill="#009739" />
       <polygon points="14,2.5 25.5,10 14,17.5 2.5,10" fill="#FEDD00" />
       <circle cx="14" cy="10" r="4.1" fill="#002776" />
@@ -81,7 +81,22 @@ export default function CategoryCarousel({ categorias = null }) {
             <Link
               key={c.slug}
               href={c.href || `/categoria/${c.slug}`}
+              onClick={
+                copa
+                  ? (e) => {
+                      // Easter egg: abre a Seleção com a "varredura Copa".
+                      e.preventDefault();
+                      window.dispatchEvent(
+                        new CustomEvent("cc:varredura", {
+                          detail: { href: c.href || `/categoria/${c.slug}` },
+                        })
+                      );
+                    }
+                  : undefined
+              }
               className={`flex shrink-0 items-center gap-2.5 rounded-2xl border px-4 py-2.5 text-sm font-medium shadow-card transition hover:-translate-y-0.5 hover:shadow-cardlg ${
+                copa ? "cc-copa " : ""
+              }${
                 todos
                   ? "border-cc-ink bg-cc-ink text-white"
                   : copa

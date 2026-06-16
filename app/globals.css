@@ -77,6 +77,47 @@ input[type="number"]::-webkit-inner-spin-button {
   }
 }
 
+/* ===== Toques de Copa (Onda 13) ===== */
+
+/* Varredura verde→amarela: faixa diagonal que cruza a tela ao abrir a Seleção. */
+@keyframes ccVarredura {
+  0% {
+    transform: translateX(-160%) skewX(-12deg);
+  }
+  100% {
+    transform: translateX(160%) skewX(-12deg);
+  }
+}
+.cc-varredura {
+  animation: ccVarredura 0.75s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+/* Bandeirinha do Brasil que treme de leve quando o mouse passa no card. */
+.cc-bandeira {
+  display: inline-block;
+  transform-origin: center;
+}
+.cc-copa:hover .cc-bandeira {
+  animation: ccBandeira 0.9s ease-in-out infinite;
+}
+@keyframes ccBandeira {
+  0%,
+  100% {
+    transform: skewX(0deg) rotate(0deg);
+  }
+  30% {
+    transform: skewX(-7deg) rotate(-2.5deg);
+  }
+  70% {
+    transform: skewX(7deg) rotate(2.5deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cc-copa:hover .cc-bandeira {
+    animation: none;
+  }
+}
+
 /* Slider de preço (dois controles sobrepostos) */
 .cc-range {
   position: absolute;

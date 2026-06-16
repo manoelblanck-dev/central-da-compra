@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Analytics } from "@vercel/analytics/react";
 import Consentimento from "@/components/Consentimento";
+import VarreduraCopa from "@/components/VarreduraCopa";
 
 const instrument = Instrument_Serif({
   subsets: ["latin"],
@@ -83,6 +84,7 @@ export default function RootLayout({ children }) {
         <Footer />
         <Analytics />
         <Consentimento />
+        <VarreduraCopa />
       </body>
     </html>
   );
