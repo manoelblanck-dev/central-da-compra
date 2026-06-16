@@ -1,11 +1,13 @@
 import { supabase } from "@/lib/supabase";
 import { sanitizarBusca } from "@/lib/constantes";
-import ListaProdutos from "@/components/ListaProdutos";
+import BuscaAoVivo from "@/components/BuscaAoVivo";
 
 export const dynamic = "force-dynamic";
 
 const POR_PAGINA = 12;
 
+// Primeira página de resultados, feita no servidor — assim a página abre já com
+// conteúdo (rápida e indexável). Depois, a busca ao vivo assume no navegador.
 async function buscar(q) {
   if (!q) return [];
   const { data, error } = await supabase.rpc("buscar_produtos", {
@@ -14,7 +16,6 @@ async function buscar(q) {
     off: 0,
   });
   if (!error && data) return data;
-  // Fallback: busca simples se a função ainda não existir no banco
   const seguro = sanitizarBusca(q);
   if (!seguro) return [];
   const { data: d2 } = await supabase
@@ -32,19 +33,11 @@ export default async function BuscaPage({ searchParams }) {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="cc-mono text-2xl text-cc-ink">
-        {q ? <>Resultados para “{q}”</> : "Buscar produtos"}
-      </h1>
+      <h1 className="cc-mono text-2xl text-cc-ink">Buscar produtos</h1>
       <p className="mb-6 mt-1 text-sm text-cc-muted">
-        {q ? "Veja o que encontramos pra você" : "Digite algo na busca acima."}
+        Digite e os resultados aparecem na hora.
       </p>
-      <ListaProdutos
-        inicial={inicial}
-        tipo="busca"
-        params={{ q }}
-        porPagina={POR_PAGINA}
-        vazio="Tente outras palavras ou veja as categorias."
-      />
+      <BuscaAoVivo termoInicial={q} inicial={inicial} />
     </div>
   );
 }
