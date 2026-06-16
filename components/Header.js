@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // Formato de UUID válido — ignora "lixo" de versões antigas no contador.
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -15,6 +15,15 @@ export default function Header() {
 
   useEffect(() => {
     setMontado(true);
+    // Se a página abriu direto numa URL de busca, já preenche o campo do topo.
+    try {
+      if (window.location.pathname === "/busca") {
+        const q = new URLSearchParams(window.location.search).get("q");
+        if (q) setTermo(q);
+      }
+    } catch {
+      /* ignora */
+    }
     const ler = () => {
       try {
         const v = JSON.parse(localStorage.getItem("cc_favoritos") || "[]");
@@ -38,10 +47,37 @@ export default function Header() {
     };
   }, []);
 
+  // Busca AO VIVO: enquanto a pessoa digita no campo do topo, os resultados se
+  // atualizam (com um pequeno atraso pra não pesar). Funciona em PC e celular,
+  // e usa só ESTA caixa (sem campo extra na página de resultados).
+  const primeiroLive = useRef(true);
+  useEffect(() => {
+    // Não dispara na montagem (só quando a pessoa realmente digita).
+    if (primeiroLive.current) {
+      primeiroLive.current = false;
+      return;
+    }
+    const q = termo.trim();
+    const t = setTimeout(() => {
+      const destino = q ? `/busca?q=${encodeURIComponent(q)}` : "/busca";
+      const atual = window.location.pathname + window.location.search;
+      if (destino === atual) return; // já estamos exibindo esse termo
+      if (q) {
+        // Já na /busca: troca o termo sem empilhar histórico. Em outra página:
+        // entra na /busca (uma entrada no histórico, pra o "voltar" funcionar).
+        if (window.location.pathname === "/busca") router.replace(destino, { scroll: false });
+        else router.push(destino, { scroll: false });
+      } else if (window.location.pathname === "/busca") {
+        router.replace(destino, { scroll: false }); // limpou o campo: zera a busca
+      }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [termo, router]);
+
   function buscar(e) {
     e.preventDefault();
     const q = termo.trim();
-    router.push(q ? `/busca?q=${encodeURIComponent(q)}` : "/");
+    router.push(q ? `/busca?q=${encodeURIComponent(q)}` : "/", { scroll: false });
   }
 
   return (
