@@ -66,7 +66,23 @@ export const metadata = {
     type: "website",
     locale: "pt_BR",
     siteName: "Central da Compra",
+    images: ["/logo.png"],
   },
+  twitter: {
+    card: "summary",
+    title: "Central da Compra — As melhores ofertas em um só lugar",
+    description:
+      "Ofertas selecionadas da Shopee, Mercado Livre e TikTok Shop. Compre com segurança.",
+    images: ["/logo.png"],
+  },
+};
+
+// Declaração de viewport (renderização correta no celular) + cor da barra do
+// navegador no mobile. No Next 14 isso fica num export separado do metadata.
+export const viewport = {
+  themeColor: "#ffffff",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({ children }) {
