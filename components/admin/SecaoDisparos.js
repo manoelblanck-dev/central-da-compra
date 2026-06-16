@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { formatarPreco } from "@/lib/constantes";
+import { mensagemWhatsapp } from "@/lib/mensagens";
 
 export default function SecaoDisparos({ produtos = [], categorias = [], subcategorias = {} }) {
   const [ativo, setAtivo] = useState(false);
@@ -19,6 +20,7 @@ export default function SecaoDisparos({ produtos = [], categorias = [], subcateg
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [testando, setTestando] = useState(null); // id sendo testado
+  const [copiado, setCopiado] = useState(null); // id copiado pro WhatsApp
   const [msg, setMsg] = useState("");
   const [agora, setAgora] = useState(Date.now());
 
@@ -130,6 +132,20 @@ export default function SecaoDisparos({ produtos = [], categorias = [], subcateg
       setMsg("Erro de conexão.");
     } finally {
       setTestando(null);
+    }
+  }
+
+  // Copia a mensagem pronta (texto do WhatsApp) pra área de transferência.
+  // Você cola no seu grupo/canal do WhatsApp. Zero risco de banir o número.
+  async function copiarWhatsapp(p) {
+    if (!p) return;
+    try {
+      await navigator.clipboard.writeText(mensagemWhatsapp(p));
+      setCopiado(p.id);
+      setMsg("📋 Mensagem copiada! Agora é só colar no seu grupo/canal do WhatsApp.");
+      setTimeout(() => setCopiado((c) => (c === p.id ? null : c)), 2000);
+    } catch {
+      setMsg("Não consegui copiar automaticamente. Tente novamente.");
     }
   }
 
@@ -342,8 +358,12 @@ export default function SecaoDisparos({ produtos = [], categorias = [], subcateg
 
           {/* a fila */}
           <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-cc-muted">
+            <p className="mb-1 text-xs font-bold uppercase tracking-wide text-cc-muted">
               Fila ({fila.length})
+            </p>
+            <p className="mb-2 text-xs text-cc-muted">
+              <span className="text-br-green">📤</span> envia no Telegram agora ·{" "}
+              <span className="text-[#1FA855]">📋</span> copia a mensagem pro WhatsApp (você cola no grupo)
             </p>
             {fila.length === 0 ? (
               <p className="text-sm text-cc-muted">Nenhum produto na fila ainda.</p>
@@ -394,11 +414,20 @@ export default function SecaoDisparos({ produtos = [], categorias = [], subcateg
                         <button
                           onClick={() => enviarAgora(id)}
                           disabled={testando === id || !p}
-                          title="Enviar este agora (teste)"
-                          aria-label="Enviar agora"
+                          title="Enviar este agora no Telegram"
+                          aria-label="Enviar agora no Telegram"
                           className="grid h-7 w-7 place-items-center rounded-lg border border-br-green/40 text-br-green hover:bg-[#F2FBF5] disabled:opacity-40"
                         >
                           {testando === id ? "…" : "📤"}
+                        </button>
+                        <button
+                          onClick={() => copiarWhatsapp(p)}
+                          disabled={!p}
+                          title="Copiar mensagem pro WhatsApp"
+                          aria-label="Copiar pro WhatsApp"
+                          className="grid h-7 w-7 place-items-center rounded-lg border border-[#25D366]/50 text-[#1FA855] hover:bg-[#F2FBF5] disabled:opacity-40"
+                        >
+                          {copiado === id ? "✓" : "📋"}
                         </button>
                         <button
                           onClick={() => mover(i, -1)}
