@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import ProductCard from "@/components/ProductCard";
+import { useCarrossel } from "@/lib/useCarrossel";
 
 const KEY = "cc_vistos";
 const MAX = 10;
@@ -25,11 +26,7 @@ export function registrarVisto(id) {
 export default function VistosRecentemente({ excluir }) {
   const [produtos, setProdutos] = useState(null); // null = ainda não verificou
   const trackRef = useRef(null);
-
-  function rola(dir) {
-    const t = trackRef.current;
-    if (t) t.scrollBy({ left: dir * Math.min(t.clientWidth * 0.8, 420), behavior: "smooth" });
-  }
+  const { overflow, esquerda, direita, rolar } = useCarrossel(trackRef, produtos);
 
   useEffect(() => {
     let ids = [];
@@ -65,19 +62,21 @@ export default function VistosRecentemente({ excluir }) {
         <h2 className="text-2xl font-semibold tracking-tight text-cc-ink">
           Vistos <span className="serif-accent text-[1.15em]">recentemente</span>
         </h2>
-        {produtos.length > 2 ? (
+        {overflow ? (
           <div className="flex gap-1.5">
             <button
-              onClick={() => rola(-1)}
+              onClick={() => rolar(-1)}
+              disabled={!esquerda}
               aria-label="Ver anteriores"
-              className="grid h-9 w-9 place-items-center rounded-xl border border-cc-line bg-white text-lg text-cc-ink shadow-card transition hover:bg-cc-cream"
+              className="grid h-9 w-9 place-items-center rounded-xl border border-cc-line bg-white text-lg text-cc-ink shadow-card transition hover:bg-cc-cream disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white"
             >
               ‹
             </button>
             <button
-              onClick={() => rola(1)}
+              onClick={() => rolar(1)}
+              disabled={!direita}
               aria-label="Ver próximos"
-              className="grid h-9 w-9 place-items-center rounded-xl border border-cc-line bg-white text-lg text-cc-ink shadow-card transition hover:bg-cc-cream"
+              className="grid h-9 w-9 place-items-center rounded-xl border border-cc-line bg-white text-lg text-cc-ink shadow-card transition hover:bg-cc-cream disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white"
             >
               ›
             </button>

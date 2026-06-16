@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import ProductCard from "@/components/ProductCard";
 import ProductGrid from "@/components/ProductGrid";
+import { useCarrossel } from "@/lib/useCarrossel";
 
 // Carrossel horizontal de produtos com setas de navegação.
 // As setas só aparecem quando os produtos REALMENTE ultrapassam a largura
@@ -12,23 +13,9 @@ import ProductGrid from "@/components/ProductGrid";
 // titulo + destaque montam o cabeçalho: "{titulo} {destaque em itálico}".
 export default function ProductCarousel({ produtos, titulo = "", destaque = "", vazio }) {
   const trackRef = useRef(null);
-  const [temOverflow, setTemOverflow] = useState(false);
+  const { overflow, esquerda, direita, rolar } = useCarrossel(trackRef, produtos);
 
   const temProdutos = Array.isArray(produtos) && produtos.length > 0;
-
-  useEffect(() => {
-    const t = trackRef.current;
-    if (!t) return;
-    const checar = () => setTemOverflow(t.scrollWidth - t.clientWidth > 8);
-    checar();
-    window.addEventListener("resize", checar);
-    return () => window.removeEventListener("resize", checar);
-  }, [produtos]);
-
-  function rola(dir) {
-    const t = trackRef.current;
-    if (t) t.scrollBy({ left: dir * Math.min(t.clientWidth * 0.8, 520), behavior: "smooth" });
-  }
 
   return (
     <div>
@@ -37,19 +24,21 @@ export default function ProductCarousel({ produtos, titulo = "", destaque = "", 
           {titulo ? `${titulo} ` : ""}
           {destaque ? <span className="serif-accent text-[1.15em]">{destaque}</span> : null}
         </h2>
-        {temProdutos && temOverflow ? (
+        {temProdutos && overflow ? (
           <div className="flex shrink-0 gap-1.5">
             <button
-              onClick={() => rola(-1)}
+              onClick={() => rolar(-1)}
+              disabled={!esquerda}
               aria-label="Ver anteriores"
-              className="grid h-9 w-9 place-items-center rounded-xl border border-cc-line bg-white text-lg text-cc-ink shadow-card transition hover:bg-cc-cream"
+              className="grid h-9 w-9 place-items-center rounded-xl border border-cc-line bg-white text-lg text-cc-ink shadow-card transition hover:bg-cc-cream disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white"
             >
               ‹
             </button>
             <button
-              onClick={() => rola(1)}
+              onClick={() => rolar(1)}
+              disabled={!direita}
               aria-label="Ver próximos"
-              className="grid h-9 w-9 place-items-center rounded-xl border border-cc-line bg-white text-lg text-cc-ink shadow-card transition hover:bg-cc-cream"
+              className="grid h-9 w-9 place-items-center rounded-xl border border-cc-line bg-white text-lg text-cc-ink shadow-card transition hover:bg-cc-cream disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white"
             >
               ›
             </button>

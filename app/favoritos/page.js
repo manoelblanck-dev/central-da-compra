@@ -6,28 +6,55 @@ import { supabase } from "@/lib/supabase";
 import ProductGrid from "@/components/ProductGrid";
 import SkeletonGrid from "@/components/SkeletonGrid";
 
+// Formato de UUID válido — descarta "lixo" de versões antigas do site.
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 function lerFavs() {
   try {
-    return JSON.parse(localStorage.getItem("cc_favoritos") || "[]");
+    const v = JSON.parse(localStorage.getItem("cc_favoritos") || "[]");
+    return Array.isArray(v) ? v : [];
   } catch {
     return [];
   }
+}
+
+function salvarFavs(ids) {
+  try {
+    localStorage.setItem("cc_favoritos", JSON.stringify(ids));
+  } catch {
+    /* ignora */
+  }
+  // Avisa o Header pra atualizar o número na hora.
+  window.dispatchEvent(new Event("cc-favoritos"));
 }
 
 export default function FavoritosPage() {
   const [produtos, setProdutos] = useState(null); // null = carregando
 
   async function carregar() {
-    const ids = lerFavs();
+    const brutos = lerFavs();
+    // Só ids em formato válido (remove lixo de versões antigas).
+    const ids = brutos.filter((id) => typeof id === "string" && UUID.test(id));
     if (!ids.length) {
+      if (brutos.length) salvarFavs([]); // tinha lixo: limpa e corrige o contador
       setProdutos([]);
       return;
     }
-    const { data } = await supabase.from("produtos").select("*").in("id", ids);
+
+    const { data, error } = await supabase.from("produtos").select("*").in("id", ids);
+    // Se a busca falhou, não mexe nos favoritos (evita apagar por engano).
+    if (error) {
+      setProdutos([]);
+      return;
+    }
+
+    const existentes = new Set((data || []).map((p) => p.id));
+    const validos = ids.filter((id) => existentes.has(id));
+    // Autolimpeza: se sobrou id inválido ou de produto excluído, reescreve a lista.
+    if (validos.length !== brutos.length) salvarFavs(validos);
+
     // mantém a ordem em que foram salvos
-    const ordenados = ids
-      .map((id) => (data || []).find((p) => p.id === id))
-      .filter(Boolean);
+    const ordenados = validos.map((id) => (data || []).find((p) => p.id === id)).filter(Boolean);
     setProdutos(ordenados);
   }
 

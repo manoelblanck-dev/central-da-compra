@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+// Formato de UUID válido — ignora "lixo" de versões antigas no contador.
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 export default function Header() {
   const router = useRouter();
   const [termo, setTermo] = useState("");
@@ -14,8 +17,14 @@ export default function Header() {
     setMontado(true);
     const ler = () => {
       try {
-        const lista = JSON.parse(localStorage.getItem("cc_favoritos") || "[]");
-        setFavs(Array.isArray(lista) ? lista.length : 0);
+        const v = JSON.parse(localStorage.getItem("cc_favoritos") || "[]");
+        const lista = Array.isArray(v) ? v : [];
+        // Conta só ids válidos; se achou lixo (versão antiga), conserta a lista.
+        const validos = lista.filter((id) => typeof id === "string" && UUID.test(id));
+        if (validos.length !== lista.length) {
+          localStorage.setItem("cc_favoritos", JSON.stringify(validos));
+        }
+        setFavs(validos.length);
       } catch {
         setFavs(0);
       }

@@ -59,14 +59,21 @@ export default function ProductCard({ produto }) {
               </span>
             ) : null}
           </div>
-          <span className="absolute bottom-3 right-3">
-            <PlatformBadge plataforma={produto.plataforma} />
-          </span>
-          {ehCopa ? (
-            <span className="absolute bottom-3 left-3 rounded-full bg-br-green/90 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
-              ⚽ Copa
-            </span>
-          ) : null}
+          {/* Selos da base: Copa (se houver) à esquerda e a plataforma à direita.
+              Ficam num flex com gap e quebra de linha — assim o selo da
+              plataforma (texto longo, ex.: "Mercado Livre") nunca sobrepõe o da
+              Copa em telas estreitas; se não couber, ele desce pra outra linha. */}
+          <div className="absolute inset-x-3 bottom-3 flex flex-wrap items-end gap-1.5">
+            {ehCopa ? (
+              <span className="shrink-0 whitespace-nowrap rounded-full bg-br-green/90 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
+                ⚽ Copa
+              </span>
+            ) : null}
+            <PlatformBadge
+              plataforma={produto.plataforma}
+              className="ml-auto shrink-0 whitespace-nowrap"
+            />
+          </div>
         </div>
 
         <div className="flex flex-1 flex-col gap-1.5 p-4">
