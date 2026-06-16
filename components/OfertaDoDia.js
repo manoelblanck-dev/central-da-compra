@@ -6,22 +6,32 @@ import Image from "next/image";
 import LinkOferta from "@/components/LinkOferta";
 import { formatarPreco } from "@/lib/constantes";
 
-// Quanto falta até o fim do dia de hoje (meia-noite). Recalculado a cada
-// segundo, então a contagem "vira" sozinha todo dia, sem depender do cache.
-function faltaParaMeiaNoite() {
-  const fim = new Date();
-  fim.setHours(23, 59, 59, 999);
-  return fim.getTime() - Date.now();
+// Quanto falta até a próxima troca. Se vier `terminaEm` (fila manual de ofertas),
+// conta até esse horário — e, ao passar, rola para o próximo intervalo, então o
+// relógio nunca fica "zerado" esperando o cache atualizar o produto. Sem
+// `terminaEm`, conta até a meia-noite (comportamento antigo/automático).
+function calcularFalta(terminaEm, intervaloMs) {
+  if (!terminaEm) {
+    const fim = new Date();
+    fim.setHours(23, 59, 59, 999);
+    return fim.getTime() - Date.now();
+  }
+  let alvo = terminaEm;
+  const agora = Date.now();
+  if (intervaloMs && intervaloMs > 0) {
+    while (alvo <= agora) alvo += intervaloMs;
+  }
+  return alvo - agora;
 }
 
-function Relogio() {
+function Relogio({ terminaEm = null, intervaloMs = null }) {
   const [ms, setMs] = useState(null);
 
   useEffect(() => {
-    setMs(faltaParaMeiaNoite());
-    const t = setInterval(() => setMs(faltaParaMeiaNoite()), 1000);
+    setMs(calcularFalta(terminaEm, intervaloMs));
+    const t = setInterval(() => setMs(calcularFalta(terminaEm, intervaloMs)), 1000);
     return () => clearInterval(t);
-  }, []);
+  }, [terminaEm, intervaloMs]);
 
   // Antes de o navegador calcular (e na renderização do servidor), mostra um
   // placeholder em vez de "00:00:00" — que parece um timer quebrado/zerado.
@@ -48,9 +58,10 @@ function Relogio() {
   );
 }
 
-// Card de destaque "Oferta do dia" — recebe o produto mais clicado (escolhido
-// no servidor). Mostra urgência com contagem regressiva até meia-noite.
-export default function OfertaDoDia({ produto }) {
+// Card de destaque "Oferta do dia" — recebe o produto escolhido no servidor
+// (fila manual do painel ou, no automático, o mais clicado). `terminaEm` é o
+// horário da próxima troca; `intervaloMs`, a duração de cada oferta da fila.
+export default function OfertaDoDia({ produto, terminaEm = null, intervaloMs = null }) {
   if (!produto) return null;
 
   const preco = formatarPreco(produto.preco);
@@ -91,7 +102,7 @@ export default function OfertaDoDia({ produto }) {
                 🔥 Oferta do dia
               </span>
               <span className="inline-flex items-center gap-1.5 text-xs text-cc-muted">
-                Acaba em <Relogio />
+                Acaba em <Relogio terminaEm={terminaEm} intervaloMs={intervaloMs} />
               </span>
             </div>
 

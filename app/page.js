@@ -48,9 +48,51 @@ async function getProdutos() {
   };
 }
 
-// "Oferta do dia": o produto mais clicado que tenha preço (pra o card ficar
-// completo). Se ninguém clicou ainda, pega o mais recente com preço.
+// "Oferta do dia". Primeiro tenta a FILA manual configurada no painel
+// (config "oferta_do_dia"): cada produto fica X horas no ar e o site calcula,
+// pela hora atual, qual está valendo agora e quando troca — sem precisar de robô.
+// Se não houver fila (ou ela acabou no modo "não repetir"), cai no AUTOMÁTICO:
+// o produto mais clicado que tenha preço (fallback: o mais recente com preço).
 async function getOfertaDoDia() {
+  const { data: cfg } = await supabase
+    .from("config")
+    .select("valor")
+    .eq("chave", "oferta_do_dia")
+    .maybeSingle();
+
+  const conf = cfg?.valor;
+  const fila = Array.isArray(conf?.produtos) ? conf.produtos.filter(Boolean) : [];
+  const horas = Number(conf?.horas) > 0 ? Number(conf.horas) : 12;
+  const inicio = conf?.inicio ? Date.parse(conf.inicio) : null;
+  const repetir = conf?.repetir !== false; // padrão: repete a fila
+
+  if (fila.length > 0 && inicio) {
+    const dur = horas * 3600 * 1000;
+    const passou = Date.now() - inicio;
+
+    // Antes da fila começar (agendada pro futuro): mostra o 1º, conta até começar.
+    if (passou < 0) {
+      const { data: prod } = await supabase.from("produtos").select("*").eq("id", fila[0]).single();
+      if (prod) return { produto: prod, terminaEm: inicio, intervaloMs: dur };
+    } else {
+      const rawIdx = Math.floor(passou / dur);
+      const acabou = !repetir && rawIdx >= fila.length;
+      if (!acabou) {
+        const idx = repetir ? rawIdx % fila.length : Math.min(rawIdx, fila.length - 1);
+        const { data: prod } = await supabase
+          .from("produtos")
+          .select("*")
+          .eq("id", fila[idx])
+          .single();
+        if (prod) {
+          return { produto: prod, terminaEm: inicio + (rawIdx + 1) * dur, intervaloMs: dur };
+        }
+        // produto da vez foi removido: cai no automático abaixo.
+      }
+    }
+  }
+
+  // Automático
   const { data } = await supabase
     .from("produtos")
     .select("*")
@@ -58,7 +100,7 @@ async function getOfertaDoDia() {
     .order("cliques", { ascending: false })
     .order("criado_em", { ascending: false })
     .limit(1);
-  return data?.[0] || null;
+  return { produto: data?.[0] || null, terminaEm: null, intervaloMs: null };
 }
 
 // Total de produtos cadastrados (pra faixa de confiança). Só conta, não traz dados.
@@ -153,8 +195,12 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Oferta do dia — produto mais clicado, com urgência (contagem regressiva) */}
-      <OfertaDoDia produto={ofertaDoDia} />
+      {/* Oferta do dia — fila manual do painel (ou automático), com contagem regressiva */}
+      <OfertaDoDia
+        produto={ofertaDoDia?.produto}
+        terminaEm={ofertaDoDia?.terminaEm}
+        intervaloMs={ofertaDoDia?.intervaloMs}
+      />
 
       {/* Convite pro canal de ofertas no WhatsApp (só aparece com o link configurado) */}
       <BotaoWhatsApp variante="faixa" />
