@@ -118,6 +118,19 @@ input[type="number"]::-webkit-inner-spin-button {
   }
 }
 
+/* "Todos" na barra lateral: o iconezinho de grade dá uma leve girada no hover. */
+.cc-todos svg {
+  transition: transform 0.25s ease;
+}
+.cc-todos:hover svg {
+  transform: rotate(-6deg) scale(1.08);
+}
+@media (prefers-reduced-motion: reduce) {
+  .cc-todos:hover svg {
+    transform: none;
+  }
+}
+
 /* Slider de preço (dois controles sobrepostos) */
 .cc-range {
   position: absolute;

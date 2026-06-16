@@ -200,10 +200,24 @@ export default function ListagemComFiltro({
         <div className="flex flex-col items-start gap-1.5 text-sm">
           <Link
             href="/produtos"
-            className={`hover:text-cc-ink ${
+            className={`cc-todos inline-flex items-center gap-1.5 transition hover:text-cc-ink ${
               contexto.tipo === "todos" ? "font-semibold text-cc-ink" : "text-cc-muted"
             }`}
           >
+            <svg
+              viewBox="0 0 24 24"
+              width="13"
+              height="13"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              aria-hidden="true"
+            >
+              <rect x="3" y="3" width="7" height="7" rx="1.5" />
+              <rect x="14" y="3" width="7" height="7" rx="1.5" />
+              <rect x="3" y="14" width="7" height="7" rx="1.5" />
+              <rect x="14" y="14" width="7" height="7" rx="1.5" />
+            </svg>
             Todos
           </Link>
           {ordemCategorias.map((c) => {
@@ -225,15 +239,12 @@ export default function ListagemComFiltro({
                       })
                     );
                   }}
-                  className={`cc-copa inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-medium text-br-green transition ${
-                    ativa
-                      ? "border-br-green/45 bg-[#E6F6EC]"
-                      : "border-br-green/25 bg-gradient-to-r from-[#F2FBF5] to-[#FEF9E6] hover:from-[#EAF8EF] hover:to-[#FCF3D6]"
+                  className={`cc-copa inline-flex items-center gap-1.5 transition hover:text-br-green ${
+                    ativa ? "font-semibold text-br-green" : "font-medium text-br-green/80"
                   }`}
                 >
-                  <BandeiraBrasil className="cc-bandeira" width={16} height={11} />
+                  <BandeiraBrasil className="cc-bandeira" width={15} height={11} />
                   {c.nome}
-                  <span className="text-[11px] opacity-60">⚽</span>
                 </Link>
               );
             }
