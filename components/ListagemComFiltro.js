@@ -40,7 +40,9 @@ export default function ListagemComFiltro({
   function montaQuery(off) {
     let q = supabase.from("produtos").select("*");
     if (contexto.tipo === "categoria") q = q.eq("categoria", contexto.slug);
-    if (contexto.tipo === "categoria" && subAtiva) q = q.eq("subcategoria", subAtiva);
+    // Produtos que CONTÊM a subcategoria escolhida (cada produto pode ter várias).
+    if (contexto.tipo === "categoria" && subAtiva)
+      q = q.filter("subcategorias", "cs", JSON.stringify([subAtiva]));
     if (contexto.tipo === "ofertas") q = q.eq("destaque", true);
     if (plataformas.length) q = q.in("plataforma", plataformas);
     if (precoMin > 0) q = q.gte("preco", precoMin);
@@ -229,12 +231,14 @@ export default function ListagemComFiltro({
         <aside className="sticky top-28 hidden md:block">{Sidebar}</aside>
 
         <div>
-          {/* Filtro de subcategoria (chips) — só na página de categoria que tiver. */}
+          {/* Filtro de subcategoria (chips) — só na página de categoria que tiver.
+              Abrem com um leve fade em cascata (cc-reveal) ao entrar na página. */}
           {subcategorias.length > 0 ? (
             <div className="no-scrollbar mb-4 flex gap-2 overflow-x-auto pb-1">
               <button
                 onClick={() => setSubAtiva("")}
-                className={`shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
+                style={{ animationDelay: "0ms" }}
+                className={`cc-reveal shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
                   subAtiva === ""
                     ? "border-cc-ink bg-cc-ink text-white"
                     : "border-cc-line bg-white text-cc-ink hover:bg-cc-cream"
@@ -242,11 +246,12 @@ export default function ListagemComFiltro({
               >
                 Todos
               </button>
-              {subcategorias.map((s) => (
+              {subcategorias.map((s, i) => (
                 <button
                   key={s.slug}
                   onClick={() => setSubAtiva(s.slug)}
-                  className={`shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
+                  style={{ animationDelay: `${(i + 1) * 45}ms` }}
+                  className={`cc-reveal shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
                     subAtiva === s.slug
                       ? "border-cc-ink bg-cc-ink text-white"
                       : "border-cc-line bg-white text-cc-ink hover:bg-cc-cream"

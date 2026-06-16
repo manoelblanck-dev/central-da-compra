@@ -62,6 +62,19 @@ export default function FormProduto({
     setForm((f) => ({ ...f, [campo]: v }));
   };
 
+  // Liga/desliga uma subcategoria na lista do produto (várias por produto).
+  function toggleSub(slug) {
+    setForm((f) => {
+      const atuais = Array.isArray(f.subcategorias) ? f.subcategorias : [];
+      return {
+        ...f,
+        subcategorias: atuais.includes(slug)
+          ? atuais.filter((s) => s !== slug)
+          : [...atuais, slug],
+      };
+    });
+  }
+
   // Reduz a imagem no próprio navegador e envia; devolve a URL hospedada.
   // Reutilizada pela foto principal e pela galeria. Lança erro em caso de falha.
   async function uploadImagem(file) {
@@ -371,7 +384,7 @@ export default function FormProduto({
               <select
                 value={form.categoria}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, categoria: e.target.value, subcategoria: "" }))
+                  setForm((f) => ({ ...f, categoria: e.target.value, subcategorias: [] }))
                 }
                 className={campo}
               >
@@ -382,17 +395,36 @@ export default function FormProduto({
             </div>
           </div>
 
-          {/* Subcategoria — só aparece se a categoria escolhida tiver alguma.
-              Crie/edite as subcategorias na aba “Categorias” do painel. */}
+          {/* Subcategorias — só aparecem se a categoria escolhida tiver alguma.
+              Crie/edite as subcategorias na aba “Categorias” do painel. Pode
+              marcar quantas quiser no mesmo produto. */}
           {subDaCategoria.length > 0 ? (
             <div>
-              <label className={rotulo}>Subcategoria</label>
-              <select value={form.subcategoria || ""} onChange={set("subcategoria")} className={campo}>
-                <option value="">— Nenhuma —</option>
-                {subDaCategoria.map((s) => (
-                  <option key={s.slug} value={s.slug}>{s.nome}</option>
-                ))}
-              </select>
+              <label className={rotulo}>Subcategorias</label>
+              <div className="flex flex-wrap gap-2">
+                {subDaCategoria.map((s) => {
+                  const ativa = (form.subcategorias || []).includes(s.slug);
+                  return (
+                    <button
+                      type="button"
+                      key={s.slug}
+                      onClick={() => toggleSub(s.slug)}
+                      aria-pressed={ativa}
+                      className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
+                        ativa
+                          ? "border-cc-yellow-dark bg-cc-yellow text-cc-ink"
+                          : "border-cc-line bg-white text-cc-ink hover:bg-cc-cream"
+                      }`}
+                    >
+                      {ativa ? "✓ " : ""}
+                      {s.nome}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-1 text-xs text-cc-muted">
+                Clique pra marcar/desmarcar — pode escolher quantas quiser.
+              </p>
             </div>
           ) : null}
 

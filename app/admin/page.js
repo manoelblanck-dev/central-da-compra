@@ -22,7 +22,7 @@ const PRODUTO_VAZIO = {
   link_afiliado: "",
   plataforma: "shopee",
   categoria: "outros",
-  subcategoria: "",
+  subcategorias: [],
   destaque: false,
   nota: "",
   avaliacoes: "",
@@ -115,7 +115,11 @@ export default function AdminPage() {
       nota: p.nota ?? "",
       avaliacoes: p.avaliacoes ?? "",
       comissao_percent: p.comissao_percent ?? "",
-      subcategoria: p.subcategoria ?? "",
+      subcategorias: Array.isArray(p.subcategorias)
+        ? p.subcategorias
+        : p.subcategoria
+        ? [p.subcategoria]
+        : [],
       imagens: Array.isArray(p.imagens) ? p.imagens : [],
     });
   }
@@ -163,7 +167,11 @@ export default function AdminPage() {
       nota: p.nota ?? "",
       avaliacoes: p.avaliacoes ?? "",
       comissao_percent: p.comissao_percent ?? "",
-      subcategoria: p.subcategoria ?? "",
+      subcategorias: Array.isArray(p.subcategorias)
+        ? p.subcategorias
+        : p.subcategoria
+        ? [p.subcategoria]
+        : [],
       imagens: Array.isArray(p.imagens) ? p.imagens : [],
     });
   }

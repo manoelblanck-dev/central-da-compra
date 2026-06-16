@@ -58,7 +58,11 @@ export default function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS }
           imagem_url: fotos[0] || "",
           imagens: fotos.slice(1),
           comissao_percent: comissao || "",
-          subcategoria: subcategoria ? gerarSlug(subcategoria) : "",
+          // Subcategorias: várias separadas por vírgula (ex.: "camisas, manga longa").
+          subcategorias: (subcategoria || "")
+            .split(",")
+            .map((s) => gerarSlug(s.trim()))
+            .filter(Boolean),
         };
       });
   }
@@ -119,8 +123,9 @@ export default function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS }
             <b> plataforma</b> é detectada pelo link se ficar vazia. A <b>categoria</b> pode ser o
             nome ou o atalho dela (use a aba “Categorias” para criar novas antes). No campo{" "}
             <b>Imagem</b>, dá pra colar várias URLs separadas por vírgula (a 1ª é a principal, o
-            resto vira galeria). A <b>subcategoria</b> (último campo, opcional) deve existir na
-            categoria escolhida — crie-as antes na aba “Categorias”.
+            resto vira galeria). Em <b>Subcategoria</b> (último campo, opcional) dá pra pôr várias
+            separadas por vírgula — elas devem existir na categoria escolhida (crie-as antes na aba
+            “Categorias”).
           </p>
           <p className="mt-2 text-cc-muted">Exemplo com todos os campos preenchidos:</p>
           <p className="mt-1 break-all font-mono text-[11px] text-cc-muted">

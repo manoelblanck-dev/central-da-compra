@@ -43,6 +43,14 @@ function limparImagens(v) {
     .filter((u) => u && (u.startsWith("http") || u.startsWith("/")))
     .slice(0, 10);
 }
+// subcategorias (atalhos/slugs): sem vazios nem repetidos, no máximo 20
+function limparSubs(v) {
+  if (!Array.isArray(v)) return [];
+  return [...new Set(v.map((s) => (typeof s === "string" ? s.trim() : "")).filter(Boolean))].slice(
+    0,
+    20
+  );
+}
 
 export async function POST(request) {
   if (!(await autorizado(request))) {
@@ -85,7 +93,8 @@ export async function POST(request) {
       link_afiliado: link,
       plataforma: normalizarPlataforma(item.plataforma) || detectarPlataforma(link) || "shopee",
       categoria: item.categoria || "outros",
-      subcategoria: item.subcategoria ? item.subcategoria.toString().trim() : null,
+      subcategoria: limparSubs(item.subcategorias)[0] || null,
+      subcategorias: limparSubs(item.subcategorias),
       destaque: !!item.destaque,
       nota: nota0a5(item.nota),
       avaliacoes: avaliacoesValidas(item.avaliacoes),

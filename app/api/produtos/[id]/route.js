@@ -28,6 +28,15 @@ function limparImagens(v) {
     .slice(0, 10);
 }
 
+// Limpa a lista de subcategorias (atalhos/slugs): sem vazios nem repetidos, máx 20.
+function limparSubs(v) {
+  if (!Array.isArray(v)) return [];
+  return [...new Set(v.map((s) => (typeof s === "string" ? s.trim() : "")).filter(Boolean))].slice(
+    0,
+    20
+  );
+}
+
 function montarProduto(body) {
   const numero = (v) => (v === "" || v === null || v === undefined ? null : Number(v));
   let nota = numero(body.nota);
@@ -37,6 +46,7 @@ function montarProduto(body) {
   // comissão de afiliado em %, limitada a 0–100
   let comissao = numero(body.comissao_percent);
   if (comissao !== null) comissao = Math.max(0, Math.min(100, comissao));
+  const subcategorias = limparSubs(body.subcategorias);
   return {
     nome: body.nome?.trim() || "",
     descricao: body.descricao?.trim() || null,
@@ -46,7 +56,8 @@ function montarProduto(body) {
     link_afiliado: body.link_afiliado?.trim() || "",
     plataforma: body.plataforma || "shopee",
     categoria: body.categoria || "outros",
-    subcategoria: body.subcategoria?.toString().trim() || null,
+    subcategoria: subcategorias[0] || null,
+    subcategorias,
     destaque: !!body.destaque,
     nota,
     avaliacoes,
