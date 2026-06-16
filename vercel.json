@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/atualizar-precos",
       "schedule": "0 */4 * * *"
+    },
+    {
+      "path": "/api/cron/disparar-telegram",
+      "schedule": "0 * * * *"
     }
   ]
 }

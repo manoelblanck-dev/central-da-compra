@@ -10,6 +10,7 @@ import FormProduto from "@/components/admin/FormProduto";
 import FormLote from "@/components/admin/FormLote";
 import SecaoDesempenho from "@/components/admin/SecaoDesempenho";
 import SecaoOfertaDia from "@/components/admin/SecaoOfertaDia";
+import SecaoDisparos from "@/components/admin/SecaoDisparos";
 import SecaoCategorias from "@/components/admin/SecaoCategorias";
 import SecaoProximoJogo from "@/components/admin/SecaoProximoJogo";
 import SecaoCupons from "@/components/admin/SecaoCupons";
@@ -403,6 +404,9 @@ export default function AdminPage() {
         <AbaBotao ativo={aba === "oferta"} onClick={() => setAba("oferta")}>
           🔥 Oferta do dia
         </AbaBotao>
+        <AbaBotao ativo={aba === "disparos"} onClick={() => setAba("disparos")}>
+          📣 Disparos
+        </AbaBotao>
         <AbaBotao ativo={aba === "categorias"} onClick={() => setAba("categorias")}>
           🏷️ Categorias
         </AbaBotao>
@@ -700,6 +704,15 @@ export default function AdminPage() {
       {/* aba: oferta do dia (fila manual) */}
       {aba === "oferta" ? (
         <SecaoOfertaDia
+          produtos={produtos}
+          categorias={categorias}
+          subcategorias={subcategorias}
+        />
+      ) : null}
+
+      {/* aba: disparos no telegram */}
+      {aba === "disparos" ? (
+        <SecaoDisparos
           produtos={produtos}
           categorias={categorias}
           subcategorias={subcategorias}
