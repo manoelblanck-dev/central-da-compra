@@ -145,9 +145,18 @@ export default function SecaoOfertaDia({ produtos = [], categorias = [], subcate
   const naFila = useMemo(() => new Set(fila), [fila]);
   const termo = busca.trim().toLowerCase();
 
+  // Ganho por venda = preço × comissão% (quanto você recebe por aquele produto).
+  const ganho = (p) =>
+    p.preco && p.comissao_percent ? (Number(p.preco) * Number(p.comissao_percent)) / 100 : 0;
+
   function ordenar(a, b) {
     if (ordem === "maior") return (Number(b.preco) || 0) - (Number(a.preco) || 0);
     if (ordem === "menor") return (Number(a.preco) || 0) - (Number(b.preco) || 0);
+    if (ordem === "comissao_maior")
+      return (Number(b.comissao_percent) || 0) - (Number(a.comissao_percent) || 0);
+    if (ordem === "comissao_menor")
+      return (Number(a.comissao_percent) || 0) - (Number(b.comissao_percent) || 0);
+    if (ordem === "ganho") return ganho(b) - ganho(a);
     if (ordem === "avaliacao") return (Number(b.nota) || 0) - (Number(a.nota) || 0);
     if (ordem === "desconto")
       return (Number(b.desconto_percent) || 0) - (Number(a.desconto_percent) || 0);
@@ -278,20 +287,25 @@ export default function SecaoOfertaDia({ produtos = [], categorias = [], subcate
                   </option>
                 ))}
               </select>
-              {subDaCat.length > 0 ? (
-                <select
-                  value={fSub}
-                  onChange={(e) => setFSub(e.target.value)}
-                  className="border border-cc-line px-2.5 py-2 text-sm outline-none focus:border-cc-yellow"
-                >
-                  <option value="">Todas as subcategorias</option>
-                  {subDaCat.map((s) => (
-                    <option key={s.slug} value={s.slug}>
-                      {s.nome}
-                    </option>
-                  ))}
-                </select>
-              ) : null}
+              <select
+                value={fSub}
+                onChange={(e) => setFSub(e.target.value)}
+                disabled={subDaCat.length === 0}
+                className="border border-cc-line px-2.5 py-2 text-sm outline-none focus:border-cc-yellow disabled:cursor-not-allowed disabled:bg-cc-cream/40 disabled:text-cc-muted"
+              >
+                {subDaCat.length > 0 ? (
+                  <>
+                    <option value="">Todas as subcategorias</option>
+                    {subDaCat.map((s) => (
+                      <option key={s.slug} value={s.slug}>
+                        {s.nome}
+                      </option>
+                    ))}
+                  </>
+                ) : (
+                  <option value="">{fCat ? "Sem subcategorias" : "Subcategoria"}</option>
+                )}
+              </select>
               <select
                 value={ordem}
                 onChange={(e) => setOrdem(e.target.value)}
@@ -300,6 +314,9 @@ export default function SecaoOfertaDia({ produtos = [], categorias = [], subcate
                 <option value="cliques">Mais cliques</option>
                 <option value="maior">Maior preço</option>
                 <option value="menor">Menor preço</option>
+                <option value="comissao_maior">Maior comissão (%)</option>
+                <option value="comissao_menor">Menor comissão (%)</option>
+                <option value="ganho">Maior ganho/venda</option>
                 <option value="avaliacao">Melhor avaliação</option>
                 <option value="desconto">Maior desconto</option>
                 <option value="recentes">Mais recentes</option>
@@ -330,6 +347,7 @@ export default function SecaoOfertaDia({ produtos = [], categorias = [], subcate
                       <span className="block truncate text-xs text-cc-muted">
                         {catNome[p.categoria] || p.categoria} · {p.cliques || 0} cliques
                         {p.nota ? ` · ★ ${p.nota}` : ""}
+                        {p.comissao_percent ? ` · ${p.comissao_percent}% comissão` : ""}
                       </span>
                     </span>
                     <span className="shrink-0 text-cc-ink">{formatarPreco(p.preco) || "—"}</span>
