@@ -347,10 +347,17 @@ export default function SecaoOfertaDia({ produtos = [], categorias = [], subcate
                       <span className="block truncate text-xs text-cc-muted">
                         {catNome[p.categoria] || p.categoria} · {p.cliques || 0} cliques
                         {p.nota ? ` · ★ ${p.nota}` : ""}
-                        {p.comissao_percent ? ` · ${p.comissao_percent}% comissão` : ""}
                       </span>
                     </span>
-                    <span className="shrink-0 text-cc-ink">{formatarPreco(p.preco) || "—"}</span>
+                    <span className="shrink-0 text-right leading-tight">
+                      <span className="block text-cc-ink">{formatarPreco(p.preco) || "—"}</span>
+                      {ganho(p) > 0 ? (
+                        <span className="block text-xs font-semibold text-br-green">
+                          ganha {formatarPreco(ganho(p))}{" "}
+                          <span className="text-cc-muted">({p.comissao_percent}%)</span>
+                        </span>
+                      ) : null}
+                    </span>
                     <span className="shrink-0 font-semibold text-br-green">+ Adicionar</span>
                   </button>
                 ))}
