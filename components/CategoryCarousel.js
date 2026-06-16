@@ -25,13 +25,20 @@ function IconeTodos() {
   );
 }
 
-// Ordena as categorias em ordem alfabética (pt-BR, ignorando acentos/maiúsculas)
-// e coloca "Todos" sempre como primeiro item (leva a todos os produtos).
+// Ordena as categorias em ordem alfabética (pt-BR, ignorando acentos/maiúsculas).
+// "Todos" fica sempre em 1º, e a Seleção Brasileira logo em seguida (2º);
+// o restante vem em ordem alfabética.
 function montarLista(base) {
   const ordenadas = [...base].sort((a, b) =>
     (a.nome || "").localeCompare(b.nome || "", "pt-BR", { sensitivity: "base" })
   );
-  return [{ slug: "__todos", nome: "Todos", href: "/produtos", todos: true }, ...ordenadas];
+  const selecao = ordenadas.filter((c) => c.slug === "selecao");
+  const resto = ordenadas.filter((c) => c.slug !== "selecao");
+  return [
+    { slug: "__todos", nome: "Todos", href: "/produtos", todos: true },
+    ...selecao,
+    ...resto,
+  ];
 }
 
 export default function CategoryCarousel({ categorias = null }) {
