@@ -101,6 +101,7 @@ export default function ProductCard({ produto }) {
       <div className="flex gap-2 p-4 pt-0">
         <LinkOferta
           id={produto.id}
+          valor={produto.preco}
           className="flex-1 rounded-xl bg-cc-ink py-3 text-center text-sm font-semibold text-white transition hover:bg-black active:translate-y-px"
         >
           Ver Oferta

@@ -55,6 +55,7 @@ export default async function Footer() {
           <div className="mb-3 flex flex-wrap gap-x-5 gap-y-2">
             <Link href="/ofertas" className="hover:text-cc-ink">Ofertas da Semana</Link>
             <Link href="/produtos" className="hover:text-cc-ink">Todos os produtos</Link>
+            <Link href="/sobre" className="hover:text-cc-ink">Sobre nós</Link>
             <Link href="/privacidade" className="hover:text-cc-ink">Política de Privacidade</Link>
             <Link href="/termos" className="hover:text-cc-ink">Termos de Uso</Link>
           </div>

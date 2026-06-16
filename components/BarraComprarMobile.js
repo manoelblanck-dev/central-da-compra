@@ -32,6 +32,7 @@ export default function BarraComprarMobile({ id, preco, precoAntigo }) {
         </div>
         <LinkOferta
           id={id}
+          valor={preco}
           className="shrink-0 rounded-xl bg-cc-ink px-6 py-3 text-center text-sm font-semibold text-white shadow-card transition active:translate-y-px"
         >
           Ver Oferta →

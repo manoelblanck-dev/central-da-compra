@@ -237,6 +237,7 @@ export default async function ProdutoPage({ params }) {
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-stretch">
             <LinkOferta
               id={produto.id}
+              valor={produto.preco}
               className="flex items-center justify-center gap-2 rounded-xl bg-cc-ink px-8 py-4 text-base font-semibold text-white shadow-card transition hover:bg-black active:translate-y-px"
             >
               Ver Oferta →

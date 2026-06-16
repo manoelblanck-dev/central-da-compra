@@ -118,6 +118,7 @@ export default function OfertaDoDia({ produto }) {
 
             <LinkOferta
               id={produto.id}
+              valor={produto.preco}
               className="mt-4 inline-block w-full rounded-xl bg-cc-ink px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-black active:translate-y-px sm:w-auto"
             >
               Ver Oferta →
