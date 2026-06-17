@@ -1,5 +1,5 @@
 import Link from "next/link";
-import BotaoWhatsApp from "@/components/BotaoWhatsApp";
+import CanaisOfertas from "@/components/CanaisOfertas";
 import { getCategoriasComProdutos } from "@/lib/categoriasDisponiveis";
 import { getTodasCategorias } from "@/lib/categorias";
 
@@ -31,8 +31,8 @@ export default async function Footer() {
               Selecionamos as melhores ofertas da Shopee, Mercado Livre e TikTok Shop
               para você comprar com tranquilidade. ⚽ Vai, Brasil!
             </p>
-            {/* Convite pro WhatsApp (só aparece com o link configurado) */}
-            <BotaoWhatsApp variante="botao" className="mt-4" />
+            {/* Convite pros canais (WhatsApp + Telegram) */}
+            <CanaisOfertas variante="botao" className="mt-4" />
           </div>
 
           {categorias.length > 0 ? (

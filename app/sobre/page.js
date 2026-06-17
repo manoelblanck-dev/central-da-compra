@@ -1,5 +1,5 @@
 import Link from "next/link";
-import BotaoWhatsApp from "@/components/BotaoWhatsApp";
+import CanaisOfertas from "@/components/CanaisOfertas";
 import { IconEscudo, IconLojaOficial, IconRapido } from "@/components/IconesSelo";
 
 export const metadata = {
@@ -119,7 +119,7 @@ export default function SobrePage() {
           >
             ✉️ {EMAIL}
           </a>
-          <BotaoWhatsApp variante="botao" />
+          <CanaisOfertas variante="botao" />
         </div>
       </section>
 

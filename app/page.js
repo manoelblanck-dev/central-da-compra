@@ -5,7 +5,7 @@ import CategoryCarousel from "@/components/CategoryCarousel";
 import ProximoJogo from "@/components/ProximoJogo";
 import CupomStrip from "@/components/CupomStrip";
 import VistosRecentemente from "@/components/VistosRecentemente";
-import BotaoWhatsApp from "@/components/BotaoWhatsApp";
+import CanaisOfertas from "@/components/CanaisOfertas";
 import OfertaDoDia from "@/components/OfertaDoDia";
 import ProductCarousel from "@/components/ProductCarousel";
 import FaixaConfianca from "@/components/FaixaConfianca";
@@ -202,8 +202,8 @@ export default async function Home() {
         intervaloMs={ofertaDoDia?.intervaloMs}
       />
 
-      {/* Convite pro canal de ofertas no WhatsApp (só aparece com o link configurado) */}
-      <BotaoWhatsApp variante="faixa" />
+      {/* Convite pros canais de ofertas (WhatsApp + Telegram) */}
+      <CanaisOfertas variante="faixa" />
 
       {/* Vistos recentemente (só aparece se a pessoa já visitou algum produto) */}
       <VistosRecentemente />

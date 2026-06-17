@@ -13,7 +13,7 @@ import RegistrarVisita from "@/components/RegistrarVisita";
 import VistosRecentemente from "@/components/VistosRecentemente";
 import BarraComprarMobile from "@/components/BarraComprarMobile";
 import PixelProduto from "@/components/PixelProduto";
-import BotaoWhatsApp from "@/components/BotaoWhatsApp";
+import CanaisOfertas from "@/components/CanaisOfertas";
 import FaqProduto from "@/components/FaqProduto";
 import { IconEscudo, IconLojaOficial, IconRapido } from "@/components/IconesSelo";
 
@@ -357,8 +357,8 @@ export default async function ProdutoPage({ params }) {
         </section>
       ) : null}
 
-      {/* captura: convite pro canal de ofertas no WhatsApp (público de remarketing) */}
-      <BotaoWhatsApp variante="faixa" />
+      {/* captura: convite pros canais de ofertas (WhatsApp + Telegram) */}
+      <CanaisOfertas variante="faixa" />
 
       {/* vistos recentemente (não mostra o produto atual) */}
       <VistosRecentemente excluir={produto.id} />
