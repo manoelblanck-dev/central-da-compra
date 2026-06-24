@@ -49,7 +49,7 @@ function AdicionarUrl({ aoAdicionar }) {
   );
 }
 
-export default function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS }) {
+export default function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS, modoDrop = false }) {
   const [etapa, setEtapa] = useState("texto"); // texto | fotos | revisar
   const [texto, setTexto] = useState("");
   const [itens, setItens] = useState([]); // produtos editáveis (depois do parse)
@@ -312,7 +312,7 @@ export default function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS }
                       <th className="px-2 py-1.5 font-medium">Preço</th>
                       <th className="px-2 py-1.5 font-medium">Categoria</th>
                       <th className="px-2 py-1.5 font-medium">Plataforma</th>
-                      <th className="px-2 py-1.5 font-medium">Ganho/venda</th>
+                      {!modoDrop ? <th className="px-2 py-1.5 font-medium">Ganho/venda</th> : null}
                     </tr>
                   </thead>
                   <tbody>
@@ -329,13 +329,15 @@ export default function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS }
                           {nomeCategoria(p.categoria, categorias)}
                         </td>
                         <td className="px-2 py-1.5 text-cc-muted">{nomePlat(p.plataforma)}</td>
-                        <td className="px-2 py-1.5 text-br-green">
-                          {p.preco && p.comissao_percent
-                            ? `${formatarPreco(
-                                (Number(p.preco) * Number(p.comissao_percent)) / 100
-                              )} (${p.comissao_percent}%)`
-                            : "—"}
-                        </td>
+                        {!modoDrop ? (
+                          <td className="px-2 py-1.5 text-br-green">
+                            {p.preco && p.comissao_percent
+                              ? `${formatarPreco(
+                                  (Number(p.preco) * Number(p.comissao_percent)) / 100
+                                )} (${p.comissao_percent}%)`
+                              : "—"}
+                          </td>
+                        ) : null}
                       </tr>
                     ))}
                   </tbody>

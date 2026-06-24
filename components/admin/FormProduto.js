@@ -19,6 +19,7 @@ export default function FormProduto({
   erro,
   categorias = CATEGORIAS,
   subcategorias = {},
+  modoDrop = false,
 }) {
   const [enviando, setEnviando] = useState(false);
   const [erroUpload, setErroUpload] = useState("");
@@ -148,7 +149,9 @@ export default function FormProduto({
           </div>
 
           <div>
-            <label className={rotulo}>Link de afiliado *</label>
+            <label className={rotulo}>
+              {modoDrop ? "Link do produto no fornecedor *" : "Link de afiliado *"}
+            </label>
             <input
               value={form.link_afiliado}
               onChange={(e) => {
@@ -163,7 +166,7 @@ export default function FormProduto({
             <p className="mt-1 text-xs text-cc-muted">
               A plataforma é detectada automaticamente pelo link (dá pra ajustar abaixo).
             </p>
-            {form.plataforma === "mercado_livre" ? (
+            {form.plataforma === "mercado_livre" && !modoDrop ? (
               <div className="mt-2">
                 <button
                   type="button"
@@ -284,32 +287,36 @@ export default function FormProduto({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={rotulo}>Comissão do afiliado (%)</label>
-              <input
-                type="number"
-                step="0.1"
-                min="0"
-                max="100"
-                value={form.comissao_percent}
-                onChange={set("comissao_percent")}
-                className={campo}
-                placeholder="10"
-              />
-            </div>
-            <div>
-              <label className={rotulo}>Você ganha por venda</label>
-              <div className="rounded-xl border border-cc-line bg-cc-cream/50 px-3 py-2.5 text-sm font-semibold text-br-green">
-                {form.preco && form.comissao_percent
-                  ? formatarPreco((Number(form.preco) * Number(form.comissao_percent)) / 100)
-                  : "—"}
+          {!modoDrop ? (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={rotulo}>Comissão do afiliado (%)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="100"
+                    value={form.comissao_percent}
+                    onChange={set("comissao_percent")}
+                    className={campo}
+                    placeholder="10"
+                  />
+                </div>
+                <div>
+                  <label className={rotulo}>Você ganha por venda</label>
+                  <div className="rounded-xl border border-cc-line bg-cc-cream/50 px-3 py-2.5 text-sm font-semibold text-br-green">
+                    {form.preco && form.comissao_percent
+                      ? formatarPreco((Number(form.preco) * Number(form.comissao_percent)) / 100)
+                      : "—"}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          <p className="-mt-1 text-xs text-cc-muted">
-            Quanto você recebe por cada venda (uso interno — não aparece no site).
-          </p>
+              <p className="-mt-1 text-xs text-cc-muted">
+                Quanto você recebe por cada venda (uso interno — não aparece no site).
+              </p>
+            </>
+          ) : null}
 
           <div className="grid grid-cols-2 gap-3">
             <div>

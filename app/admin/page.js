@@ -56,6 +56,9 @@ export default function AdminPage() {
   const [categorias, setCategorias] = useState(CATEGORIAS);
   // Mapa de subcategorias { catSlug: [{ slug, nome }] }.
   const [subcategorias, setSubcategorias] = useState({});
+  // Modo da loja: "dropshipping" esconde os campos de afiliado (comissão, ganho,
+  // botões do Mercado Livre). Guardado no config pra valer pra todos.
+  const [modoDrop, setModoDrop] = useState(false);
 
   const carregar = useCallback(async () => {
     setCarregando(true);
@@ -95,11 +98,38 @@ export default function AdminPage() {
     }
   }, []);
 
+  // Lê o modo da loja (afiliado x dropshipping).
+  const carregarModo = useCallback(async () => {
+    try {
+      const res = await fetch("/api/config?chave=modo_loja");
+      const data = await res.json();
+      setModoDrop(data?.valor === "dropshipping");
+    } catch {
+      setModoDrop(false);
+    }
+  }, []);
+
   useEffect(() => {
     carregar();
     carregarCategorias();
     carregarSubcategorias();
-  }, [carregar, carregarCategorias, carregarSubcategorias]);
+    carregarModo();
+  }, [carregar, carregarCategorias, carregarSubcategorias, carregarModo]);
+
+  // Troca o modo da loja e salva no config (vale pra todos os dispositivos).
+  async function alternarModo(drop) {
+    setModoDrop(drop);
+    if (drop && ordem === "ganho") setOrdem("recentes");
+    try {
+      await fetch("/api/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chave: "modo_loja", valor: drop ? "dropshipping" : "afiliado" }),
+      });
+    } catch {
+      /* ignora */
+    }
+  }
 
   function novo() {
     setErro("");
@@ -353,7 +383,7 @@ export default function AdminPage() {
     p.preco === null ||
     p.preco === undefined ||
     p.preco === "" ||
-    !p.comissao_percent;
+    (!modoDrop && !p.comissao_percent);
   const produtosExibidos = produtos
     .filter((p) => !termoBusca || (p.nome || "").toLowerCase().includes(termoBusca))
     .filter((p) => {
@@ -383,14 +413,16 @@ export default function AdminPage() {
       </div>
 
       {/* métricas */}
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className={`mt-6 grid grid-cols-2 gap-3 ${modoDrop ? "sm:grid-cols-3" : "sm:grid-cols-4"}`}>
         <Metrica rotulo="Produtos" valor={produtos.length} />
         <Metrica rotulo="Em destaque" valor={totalDestaques} />
-        <Metrica rotulo="Cliques em ofertas" valor={totalCliques} />
-        <Metrica
-          rotulo="Ganho potencial (1 de cada)"
-          valor={formatarPreco(ganhoPotencial) || "R$ 0,00"}
-        />
+        <Metrica rotulo="Cliques" valor={totalCliques} />
+        {!modoDrop ? (
+          <Metrica
+            rotulo="Ganho potencial (1 de cada)"
+            valor={formatarPreco(ganhoPotencial) || "R$ 0,00"}
+          />
+        ) : null}
       </div>
 
       {/* abas */}
@@ -421,6 +453,34 @@ export default function AdminPage() {
       {/* aba: produtos */}
       {aba === "produtos" ? (
         <div className="mt-4">
+          {/* modo da loja: afiliado x dropshipping */}
+          <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-cc-line bg-cc-cream/40 px-3 py-2">
+            <span className="text-sm font-medium text-cc-ink">Modo da loja:</span>
+            <div className="flex gap-1">
+              <button
+                onClick={() => alternarModo(false)}
+                className={`rounded-lg px-3 py-1 text-xs font-semibold transition ${
+                  !modoDrop ? "bg-cc-ink text-white" : "text-cc-muted hover:bg-cc-cream"
+                }`}
+              >
+                Afiliado
+              </button>
+              <button
+                onClick={() => alternarModo(true)}
+                className={`rounded-lg px-3 py-1 text-xs font-semibold transition ${
+                  modoDrop ? "bg-cc-ink text-white" : "text-cc-muted hover:bg-cc-cream"
+                }`}
+              >
+                Dropshipping
+              </button>
+            </div>
+            <span className="text-xs text-cc-muted">
+              {modoDrop
+                ? "Campos de afiliado (comissão, ganho, Mercado Livre) escondidos."
+                : "Mostrando os campos de afiliado (comissão, ganho, Mercado Livre)."}
+            </span>
+          </div>
+
           {/* ações de produto */}
           <div className="flex flex-wrap gap-2">
             <button
@@ -435,20 +495,24 @@ export default function AdminPage() {
             >
               + Adicionar vários
             </button>
-            <button
-              onClick={atualizarImagensML}
-              disabled={atualizandoImagens}
-              className="border border-cc-line px-4 py-2.5 text-sm font-medium text-cc-ink transition hover:bg-cc-cream disabled:opacity-60"
-            >
-              {atualizandoImagens ? "Atualizando imagens..." : "Atualizar imagens (Mercado Livre)"}
-            </button>
-            <button
-              onClick={atualizarTudoML}
-              disabled={atualizandoTudo}
-              className="bg-cc-ink px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-black disabled:opacity-60"
-            >
-              {atualizandoTudo ? "Atualizando..." : "Atualizar tudo agora (preço, nota, avaliações)"}
-            </button>
+            {!modoDrop ? (
+              <>
+                <button
+                  onClick={atualizarImagensML}
+                  disabled={atualizandoImagens}
+                  className="border border-cc-line px-4 py-2.5 text-sm font-medium text-cc-ink transition hover:bg-cc-cream disabled:opacity-60"
+                >
+                  {atualizandoImagens ? "Atualizando imagens..." : "Atualizar imagens (Mercado Livre)"}
+                </button>
+                <button
+                  onClick={atualizarTudoML}
+                  disabled={atualizandoTudo}
+                  className="bg-cc-ink px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-black disabled:opacity-60"
+                >
+                  {atualizandoTudo ? "Atualizando..." : "Atualizar tudo agora (preço, nota, avaliações)"}
+                </button>
+              </>
+            ) : null}
           </div>
 
           {/* ações em lote */}
@@ -497,24 +561,28 @@ export default function AdminPage() {
                 >
                   Aplicar
                 </button>
-                <span className="ml-2 text-xs text-cc-line">|</span>
-                <input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="100"
-                  value={loteComissao}
-                  onChange={(e) => setLoteComissao(e.target.value)}
-                  placeholder="Comissão %"
-                  className="w-28 rounded-lg border border-cc-line bg-white px-2.5 py-1.5 text-xs outline-none focus:border-cc-yellow"
-                />
-                <button
-                  onClick={() => aplicarEmLote({ comissao_percent: loteComissao })}
-                  disabled={aplicandoLote || loteComissao === ""}
-                  className="rounded-lg border border-cc-line bg-white px-3 py-1.5 text-xs font-medium text-cc-ink hover:bg-cc-cream disabled:opacity-50"
-                >
-                  Aplicar
-                </button>
+                {!modoDrop ? (
+                  <>
+                    <span className="ml-2 text-xs text-cc-line">|</span>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="100"
+                      value={loteComissao}
+                      onChange={(e) => setLoteComissao(e.target.value)}
+                      placeholder="Comissão %"
+                      className="w-28 rounded-lg border border-cc-line bg-white px-2.5 py-1.5 text-xs outline-none focus:border-cc-yellow"
+                    />
+                    <button
+                      onClick={() => aplicarEmLote({ comissao_percent: loteComissao })}
+                      disabled={aplicandoLote || loteComissao === ""}
+                      className="rounded-lg border border-cc-line bg-white px-3 py-1.5 text-xs font-medium text-cc-ink hover:bg-cc-cream disabled:opacity-50"
+                    >
+                      Aplicar
+                    </button>
+                  </>
+                ) : null}
               </div>
             </div>
           ) : null}
@@ -560,7 +628,7 @@ export default function AdminPage() {
               >
                 <option value="recentes">Mais recentes</option>
                 <option value="cliques">Mais clicados</option>
-                <option value="ganho">Maior ganho/venda</option>
+                {!modoDrop ? <option value="ganho">Maior ganho/venda</option> : null}
                 <option value="maior">Maior preço</option>
                 <option value="menor">Menor preço</option>
               </select>
@@ -599,7 +667,9 @@ export default function AdminPage() {
                       <th className="px-4 py-3 font-medium">Produto</th>
                       <th className="hidden px-4 py-3 font-medium md:table-cell">Categoria</th>
                       <th className="px-4 py-3 font-medium">Preço</th>
-                      <th className="hidden px-4 py-3 font-medium lg:table-cell">Ganho/venda</th>
+                      {!modoDrop ? (
+                        <th className="hidden px-4 py-3 font-medium lg:table-cell">Ganho/venda</th>
+                      ) : null}
                       <th className="hidden px-4 py-3 font-medium sm:table-cell">Cliques</th>
                       <th className="px-4 py-3 font-medium text-right">Ações</th>
                     </tr>
@@ -637,18 +707,20 @@ export default function AdminPage() {
                           {nomeCategoria(p.categoria, categorias)}
                         </td>
                         <td className="px-4 py-3 text-cc-ink">{formatarPreco(p.preco) || "—"}</td>
-                        <td className="hidden px-4 py-3 lg:table-cell">
-                          {p.comissao_percent ? (
-                            <span className="text-br-green">
-                              {formatarPreco(ganhoProduto(p))}
-                              <span className="ml-1 text-xs text-cc-muted">
-                                ({p.comissao_percent}%)
+                        {!modoDrop ? (
+                          <td className="hidden px-4 py-3 lg:table-cell">
+                            {p.comissao_percent ? (
+                              <span className="text-br-green">
+                                {formatarPreco(ganhoProduto(p))}
+                                <span className="ml-1 text-xs text-cc-muted">
+                                  ({p.comissao_percent}%)
+                                </span>
                               </span>
-                            </span>
-                          ) : (
-                            <span className="text-cc-muted">—</span>
-                          )}
-                        </td>
+                            ) : (
+                              <span className="text-cc-muted">—</span>
+                            )}
+                          </td>
+                        ) : null}
                         <td className="hidden px-4 py-3 text-cc-muted sm:table-cell">{p.cliques || 0}</td>
                         <td className="px-4 py-3">
                           <div className="flex justify-end gap-2">
@@ -741,6 +813,7 @@ export default function AdminPage() {
           erro={erro}
           categorias={categorias}
           subcategorias={subcategorias}
+          modoDrop={modoDrop}
         />
       ) : null}
 
@@ -748,6 +821,7 @@ export default function AdminPage() {
       {lote ? (
         <FormLote
           categorias={categorias}
+          modoDrop={modoDrop}
           fechar={() => setLote(false)}
           aoConcluir={() => {
             setLote(false);
