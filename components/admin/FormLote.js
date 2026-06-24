@@ -311,7 +311,7 @@ export default function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS, 
                       <th className="px-2 py-1.5 font-medium">Nome</th>
                       <th className="px-2 py-1.5 font-medium">Preço</th>
                       <th className="px-2 py-1.5 font-medium">Categoria</th>
-                      <th className="px-2 py-1.5 font-medium">Plataforma</th>
+                      {!modoDrop ? <th className="px-2 py-1.5 font-medium">Plataforma</th> : null}
                       {!modoDrop ? <th className="px-2 py-1.5 font-medium">Ganho/venda</th> : null}
                     </tr>
                   </thead>
@@ -328,7 +328,9 @@ export default function FormLote({ fechar, aoConcluir, categorias = CATEGORIAS, 
                         <td className="px-2 py-1.5 text-cc-muted">
                           {nomeCategoria(p.categoria, categorias)}
                         </td>
-                        <td className="px-2 py-1.5 text-cc-muted">{nomePlat(p.plataforma)}</td>
+                        {!modoDrop ? (
+                          <td className="px-2 py-1.5 text-cc-muted">{nomePlat(p.plataforma)}</td>
+                        ) : null}
                         {!modoDrop ? (
                           <td className="px-2 py-1.5 text-br-green">
                             {p.preco && p.comissao_percent

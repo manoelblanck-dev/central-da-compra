@@ -697,7 +697,9 @@ export default function AdminPage() {
                             <div className="min-w-0 max-w-[180px] sm:max-w-[260px] lg:max-w-[340px]">
                               <p className="truncate font-medium text-cc-ink">{p.nome}</p>
                               <p className="truncate text-xs text-cc-muted">
-                                {PLATAFORMAS.find((x) => x.id === p.plataforma)?.nome || p.plataforma}
+                                {modoDrop
+                                  ? nomeCategoria(p.categoria, categorias)
+                                  : PLATAFORMAS.find((x) => x.id === p.plataforma)?.nome || p.plataforma}
                                 {p.destaque ? " · ⭐ destaque" : ""}
                               </p>
                             </div>

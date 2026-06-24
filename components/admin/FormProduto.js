@@ -160,11 +160,15 @@ export default function FormProduto({
                 setForm((f) => ({ ...f, link_afiliado: v, plataforma: p || f.plataforma }));
               }}
               className={campo}
-              placeholder="https://shopee.com.br/..."
+              placeholder={
+                modoDrop ? "https://... (onde você compra no fornecedor)" : "https://shopee.com.br/..."
+              }
               required
             />
             <p className="mt-1 text-xs text-cc-muted">
-              A plataforma é detectada automaticamente pelo link (dá pra ajustar abaixo).
+              {modoDrop
+                ? "O link do produto no fornecedor — é onde você vai fazer o pedido quando vender."
+                : "A plataforma é detectada automaticamente pelo link (dá pra ajustar abaixo)."}
             </p>
             {form.plataforma === "mercado_livre" && !modoDrop ? (
               <div className="mt-2">
@@ -318,15 +322,8 @@ export default function FormProduto({
             </>
           ) : null}
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={rotulo}>Plataforma</label>
-              <select value={form.plataforma} onChange={set("plataforma")} className={campo}>
-                {PLATAFORMAS.map((p) => (
-                  <option key={p.id} value={p.id}>{p.nome}</option>
-                ))}
-              </select>
-            </div>
+          {modoDrop ? (
+            // Dropshipping: você vende seus próprios produtos — não há "plataforma".
             <div>
               <label className={rotulo}>Categoria</label>
               <select
@@ -341,7 +338,32 @@ export default function FormProduto({
                 ))}
               </select>
             </div>
-          </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={rotulo}>Plataforma</label>
+                <select value={form.plataforma} onChange={set("plataforma")} className={campo}>
+                  {PLATAFORMAS.map((p) => (
+                    <option key={p.id} value={p.id}>{p.nome}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className={rotulo}>Categoria</label>
+                <select
+                  value={form.categoria}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, categoria: e.target.value, subcategorias: [] }))
+                  }
+                  className={campo}
+                >
+                  {categorias.map((c) => (
+                    <option key={c.slug} value={c.slug}>{c.nome}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
 
           {/* Subcategorias — só aparecem se a categoria escolhida tiver alguma.
               Crie/edite as subcategorias na aba “Categorias” do painel. Pode
@@ -404,8 +426,8 @@ export default function FormProduto({
             </div>
           </div>
           <p className="-mt-1 text-xs text-cc-muted">
-            Opcional — copie a nota e o nº de avaliações da loja (Shopee/ML) para dar
-            confiança ao cliente. Deixe em branco para não mostrar estrelas.
+            Opcional — copie a nota e o nº de avaliações {modoDrop ? "do fornecedor" : "da loja (Shopee/ML)"}{" "}
+            para dar confiança ao cliente. Deixe em branco para não mostrar estrelas.
           </p>
 
           <div>
