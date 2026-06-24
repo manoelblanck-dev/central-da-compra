@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { CATEGORIAS, PLATAFORMAS, formatarPreco, nomeCategoria } from "@/lib/constantes";
+import { subcategoriasDe } from "@/lib/subcategorias";
 import Metrica from "@/components/admin/Metrica";
 import AbaBotao from "@/components/admin/AbaBotao";
 import FormProduto from "@/components/admin/FormProduto";
@@ -47,8 +48,13 @@ export default function AdminPage() {
   const [aba, setAba] = useState("produtos"); // produtos | categorias | cupons | jogo
   const [busca, setBusca] = useState(""); // busca na tabela de produtos
   const [ordem, setOrdem] = useState("recentes"); // ordenação da tabela
-  const [filtro, setFiltro] = useState("todos"); // todos | incompletos | destaque | semdestaque
   const [filtroCategoria, setFiltroCategoria] = useState(""); // "" = todas
+  const [filtroSub, setFiltroSub] = useState(""); // "" = todas as subcategorias
+  const [filtroVis, setFiltroVis] = useState("todos"); // todos | visiveis | ocultos
+  const [filtroDest, setFiltroDest] = useState("todos"); // todos | destaque | semdestaque
+  const [filtroSit, setFiltroSit] = useState("todos"); // todos | incompletos | comfoto | semfoto
+  const [precoMinF, setPrecoMinF] = useState(""); // faixa de preço (mín)
+  const [precoMaxF, setPrecoMaxF] = useState(""); // faixa de preço (máx)
   const [loteCategoria, setLoteCategoria] = useState(""); // edição em lote: categoria
   const [loteComissao, setLoteComissao] = useState(""); // edição em lote: comissão %
   const [aplicandoLote, setAplicandoLote] = useState(false);
@@ -396,6 +402,8 @@ export default function AdminPage() {
     if (ordem === "ganho") return ganhoProduto(b) - ganhoProduto(a);
     if (ordem === "maior") return (Number(b.preco) || 0) - (Number(a.preco) || 0);
     if (ordem === "menor") return (Number(a.preco) || 0) - (Number(b.preco) || 0);
+    if (ordem === "az") return (a.nome || "").localeCompare(b.nome || "", "pt-BR");
+    if (ordem === "za") return (b.nome || "").localeCompare(a.nome || "", "pt-BR");
     return new Date(b.criado_em || 0) - new Date(a.criado_em || 0); // recentes
   };
   // Produto "incompleto" = falta foto, preço ou comissão (precisa de atenção).
@@ -407,18 +415,49 @@ export default function AdminPage() {
     (!modoDrop && !p.comissao_percent);
   const produtosExibidos = produtos
     .filter((p) => !termoBusca || (p.nome || "").toLowerCase().includes(termoBusca))
+    .filter((p) => !filtroCategoria || p.categoria === filtroCategoria)
+    .filter(
+      (p) => !filtroSub || (Array.isArray(p.subcategorias) && p.subcategorias.includes(filtroSub))
+    )
     .filter((p) => {
-      if (filtro === "incompletos") return incompleto(p);
-      if (filtro === "destaque") return !!p.destaque;
-      if (filtro === "semdestaque") return !p.destaque;
-      if (filtro === "ocultos") return !!p.oculto;
-      if (filtro === "visiveis") return !p.oculto;
+      if (filtroVis === "visiveis") return !p.oculto;
+      if (filtroVis === "ocultos") return !!p.oculto;
       return true;
     })
-    .filter((p) => !filtroCategoria || p.categoria === filtroCategoria)
+    .filter((p) => {
+      if (filtroDest === "destaque") return !!p.destaque;
+      if (filtroDest === "semdestaque") return !p.destaque;
+      return true;
+    })
+    .filter((p) => {
+      if (filtroSit === "incompletos") return incompleto(p);
+      if (filtroSit === "comfoto") return !!p.imagem_url;
+      if (filtroSit === "semfoto") return !p.imagem_url;
+      return true;
+    })
+    .filter((p) => {
+      const preco = Number(p.preco);
+      if (precoMinF !== "" && (isNaN(preco) || preco < Number(precoMinF))) return false;
+      if (precoMaxF !== "" && (isNaN(preco) || preco > Number(precoMaxF))) return false;
+      return true;
+    })
     .sort(ordenarTabela);
   const totalIncompletos = produtos.filter(incompleto).length;
   const totalOcultos = produtos.filter((p) => p.oculto).length;
+  // Subcategorias da categoria escolhida no filtro (para o seletor de subcategoria).
+  const subDaCategoriaFiltro = subcategoriasDe(subcategorias, filtroCategoria);
+
+  function limparFiltros() {
+    setBusca("");
+    setFiltroCategoria("");
+    setFiltroSub("");
+    setFiltroVis("todos");
+    setFiltroDest("todos");
+    setFiltroSit("todos");
+    setPrecoMinF("");
+    setPrecoMaxF("");
+    setOrdem("recentes");
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
@@ -625,55 +664,139 @@ export default function AdminPage() {
             </div>
           ) : null}
 
-          {/* busca + ordenação */}
+          {/* busca + filtros */}
           {produtos.length > 0 ? (
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
-              <input
-                type="search"
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                placeholder="Buscar produto pelo nome..."
-                className="flex-1 rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow focus:ring-2 focus:ring-cc-yellow/30"
-              />
-              <select
-                value={filtroCategoria}
-                onChange={(e) => setFiltroCategoria(e.target.value)}
-                className="rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow"
-              >
-                <option value="">Todas as categorias</option>
-                {categorias.map((c) => (
-                  <option key={c.slug} value={c.slug}>
-                    {c.nome}
+            <div className="mt-4 space-y-2">
+              {/* linha 1: busca + limpar */}
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <input
+                  type="search"
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  placeholder="Buscar produto pelo nome..."
+                  className="flex-1 rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow focus:ring-2 focus:ring-cc-yellow/30"
+                />
+                <button
+                  onClick={limparFiltros}
+                  className="rounded-xl border border-cc-line px-4 py-2.5 text-sm font-medium text-cc-muted transition hover:bg-cc-cream hover:text-cc-ink"
+                >
+                  Limpar filtros
+                </button>
+              </div>
+
+              {/* linha 2: filtros (flui e quebra linha no celular) */}
+              <div className="flex flex-wrap gap-2">
+                <select
+                  value={filtroCategoria}
+                  onChange={(e) => {
+                    setFiltroCategoria(e.target.value);
+                    setFiltroSub("");
+                  }}
+                  className="min-w-[150px] flex-1 rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow"
+                >
+                  <option value="">Todas as categorias</option>
+                  {categorias.map((c) => (
+                    <option key={c.slug} value={c.slug}>
+                      {c.nome}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={filtroSub}
+                  onChange={(e) => setFiltroSub(e.target.value)}
+                  disabled={subDaCategoriaFiltro.length === 0}
+                  className="min-w-[150px] flex-1 rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow disabled:cursor-not-allowed disabled:bg-cc-cream/40 disabled:text-cc-muted"
+                >
+                  {subDaCategoriaFiltro.length > 0 ? (
+                    <>
+                      <option value="">Todas as subcategorias</option>
+                      {subDaCategoriaFiltro.map((s) => (
+                        <option key={s.slug} value={s.slug}>
+                          {s.nome}
+                        </option>
+                      ))}
+                    </>
+                  ) : (
+                    <option value="">{filtroCategoria ? "Sem subcategorias" : "Subcategoria"}</option>
+                  )}
+                </select>
+
+                <select
+                  value={filtroVis}
+                  onChange={(e) => setFiltroVis(e.target.value)}
+                  className="min-w-[140px] flex-1 rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow"
+                >
+                  <option value="todos">Visibilidade: todos</option>
+                  <option value="visiveis">No ar (visíveis)</option>
+                  <option value="ocultos">Ocultos{totalOcultos > 0 ? ` (${totalOcultos})` : ""}</option>
+                </select>
+
+                <select
+                  value={filtroDest}
+                  onChange={(e) => setFiltroDest(e.target.value)}
+                  className="min-w-[140px] flex-1 rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow"
+                >
+                  <option value="todos">Destaque: todos</option>
+                  <option value="destaque">Em destaque</option>
+                  <option value="semdestaque">Sem destaque</option>
+                </select>
+
+                <select
+                  value={filtroSit}
+                  onChange={(e) => setFiltroSit(e.target.value)}
+                  className="min-w-[140px] flex-1 rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow"
+                >
+                  <option value="todos">Situação: todos</option>
+                  <option value="incompletos">
+                    Incompletos{totalIncompletos > 0 ? ` (${totalIncompletos})` : ""}
                   </option>
-                ))}
-              </select>
-              <select
-                value={filtro}
-                onChange={(e) => setFiltro(e.target.value)}
-                className="rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow"
-              >
-                <option value="todos">Todos</option>
-                <option value="visiveis">No ar (visíveis)</option>
-                <option value="ocultos">
-                  Ocultos{totalOcultos > 0 ? ` (${totalOcultos})` : ""}
-                </option>
-                <option value="destaque">Em destaque</option>
-                <option value="semdestaque">Sem destaque</option>
-                <option value="incompletos">
-                  Incompletos{totalIncompletos > 0 ? ` (${totalIncompletos})` : ""}
-                </option>
-              </select>
-              <select
-                value={ordem}
-                onChange={(e) => setOrdem(e.target.value)}
-                className="rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow"
-              >
-                <option value="recentes">Mais recentes</option>
-                <option value="cliques">Mais clicados</option>
-                {!modoDrop ? <option value="ganho">Maior ganho/venda</option> : null}
-                <option value="maior">Maior preço</option>
-                <option value="menor">Menor preço</option>
-              </select>
+                  <option value="comfoto">Com foto</option>
+                  <option value="semfoto">Sem foto</option>
+                </select>
+
+                <div className="flex min-w-[160px] flex-1 items-center gap-1 rounded-xl border border-cc-line px-2.5 py-1.5">
+                  <span className="shrink-0 text-xs text-cc-muted">R$</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={precoMinF}
+                    onChange={(e) => setPrecoMinF(e.target.value)}
+                    placeholder="mín"
+                    aria-label="Preço mínimo"
+                    className="w-full min-w-0 bg-transparent text-sm outline-none"
+                  />
+                  <span className="shrink-0 text-cc-muted">–</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={precoMaxF}
+                    onChange={(e) => setPrecoMaxF(e.target.value)}
+                    placeholder="máx"
+                    aria-label="Preço máximo"
+                    className="w-full min-w-0 bg-transparent text-sm outline-none"
+                  />
+                </div>
+
+                <select
+                  value={ordem}
+                  onChange={(e) => setOrdem(e.target.value)}
+                  className="min-w-[150px] flex-1 rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow"
+                >
+                  <option value="recentes">Mais recentes</option>
+                  <option value="az">Nome (A–Z)</option>
+                  <option value="za">Nome (Z–A)</option>
+                  <option value="cliques">Mais clicados</option>
+                  {!modoDrop ? <option value="ganho">Maior ganho/venda</option> : null}
+                  <option value="maior">Maior preço</option>
+                  <option value="menor">Menor preço</option>
+                </select>
+              </div>
+
+              <p className="text-xs text-cc-muted">
+                Mostrando {produtosExibidos.length} de {produtos.length} produto(s)
+                {totalOcultos > 0 ? ` · ${totalOcultos} fora do ar` : ""}
+              </p>
             </div>
           ) : null}
 
