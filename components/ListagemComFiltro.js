@@ -40,6 +40,7 @@ export default function ListagemComFiltro({
 
   function montaQuery(off) {
     let q = supabase.from("produtos").select("*");
+    q = q.neq("oculto", true); // não mostra itens tirados do ar
     if (contexto.tipo === "categoria") q = q.eq("categoria", contexto.slug);
     // Produtos que CONTÊM a subcategoria escolhida (cada produto pode ter várias).
     if (contexto.tipo === "categoria" && subAtiva)

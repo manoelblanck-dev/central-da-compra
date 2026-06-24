@@ -46,6 +46,7 @@ export default function VistosRecentemente({ excluir }) {
       .from("produtos")
       .select("*")
       .in("id", ids)
+      .neq("oculto", true)
       .then(({ data }) => {
         const ordenados = ids
           .map((id) => (data || []).find((p) => p.id === id))

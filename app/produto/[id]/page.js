@@ -93,13 +93,14 @@ async function getRelacionados(categoria, idAtual) {
     .select("*")
     .eq("categoria", categoria)
     .neq("id", idAtual)
+    .neq("oculto", true)
     .limit(4);
   return data || [];
 }
 
 export default async function ProdutoPage({ params }) {
   const produto = await getProduto(params.id);
-  if (!produto) notFound();
+  if (!produto || produto.oculto) notFound();
 
   // Relacionados e cupom não dependem um do outro — busca em paralelo.
   const [relacionados, cupom] = await Promise.all([

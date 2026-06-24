@@ -24,18 +24,21 @@ async function getProdutos() {
     supabase
       .from("produtos")
       .select("*")
+      .neq("oculto", true)
       .eq("destaque", true)
       .order("criado_em", { ascending: false })
       .limit(8),
     supabase
       .from("produtos")
       .select("*")
+      .neq("oculto", true)
       .order("criado_em", { ascending: false })
       .limit(12),
     // Mais clicados (usa o contador de cliques que já coletamos)
     supabase
       .from("produtos")
       .select("*")
+      .neq("oculto", true)
       .gt("cliques", 0)
       .order("cliques", { ascending: false })
       .limit(8),
@@ -72,7 +75,12 @@ async function getOfertaDoDia() {
 
     // Antes da fila começar (agendada pro futuro): mostra o 1º, conta até começar.
     if (passou < 0) {
-      const { data: prod } = await supabase.from("produtos").select("*").eq("id", fila[0]).single();
+      const { data: prod } = await supabase
+        .from("produtos")
+        .select("*")
+        .eq("id", fila[0])
+        .neq("oculto", true)
+        .maybeSingle();
       if (prod) return { produto: prod, terminaEm: inicio, intervaloMs: dur };
     } else {
       const rawIdx = Math.floor(passou / dur);
@@ -83,7 +91,8 @@ async function getOfertaDoDia() {
           .from("produtos")
           .select("*")
           .eq("id", fila[idx])
-          .single();
+          .neq("oculto", true)
+          .maybeSingle();
         if (prod) {
           return { produto: prod, terminaEm: inicio + (rawIdx + 1) * dur, intervaloMs: dur };
         }
@@ -96,6 +105,7 @@ async function getOfertaDoDia() {
   const { data } = await supabase
     .from("produtos")
     .select("*")
+    .neq("oculto", true)
     .not("preco", "is", null)
     .order("cliques", { ascending: false })
     .order("criado_em", { ascending: false })
@@ -107,7 +117,8 @@ async function getOfertaDoDia() {
 async function getTotalProdutos() {
   const { count } = await supabase
     .from("produtos")
-    .select("*", { count: "exact", head: true });
+    .select("*", { count: "exact", head: true })
+    .neq("oculto", true);
   return count || 0;
 }
 

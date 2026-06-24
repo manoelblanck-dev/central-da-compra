@@ -190,6 +190,9 @@ export async function PATCH(request) {
   if (typeof body.destaque === "boolean") {
     campos.destaque = body.destaque;
   }
+  if (typeof body.oculto === "boolean") {
+    campos.oculto = body.oculto;
+  }
 
   if (Object.keys(campos).length === 0) {
     return NextResponse.json({ erro: "Nada para alterar." }, { status: 400 });

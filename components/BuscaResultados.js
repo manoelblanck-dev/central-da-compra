@@ -40,6 +40,7 @@ export default function BuscaResultados({ termo = "" }) {
   function montaQuery(off) {
     const palavras = termoLimpo.split(/\s+/).filter(Boolean);
     let q = supabase.from("produtos").select("*");
+    q = q.neq("oculto", true); // não mostra itens tirados do ar
     // Cada palavra precisa aparecer no nome OU na descrição (busca por partes).
     for (const p of palavras) q = q.or(`nome.ilike.%${p}%,descricao.ilike.%${p}%`);
     if (plataformas.length) q = q.in("plataforma", plataformas);

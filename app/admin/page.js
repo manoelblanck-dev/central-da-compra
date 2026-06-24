@@ -231,6 +231,27 @@ export default function AdminPage() {
     }
   }
 
+  // Tira do ar / põe no ar um produto (esconde ou mostra no site público).
+  async function toggleOculto(p) {
+    try {
+      const res = await fetch("/api/produtos/lote", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [p.id], oculto: !p.oculto }),
+      });
+      if (res.ok) {
+        setProdutos((lista) =>
+          lista.map((x) => (x.id === p.id ? { ...x, oculto: !p.oculto } : x))
+        );
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.erro || "Não foi possível alterar a visibilidade.");
+      }
+    } catch {
+      alert("Erro de conexão.");
+    }
+  }
+
   // Aplica um campo (categoria ou comissão) a todos os produtos selecionados.
   async function aplicarEmLote(campos) {
     if (selecionados.length === 0) return;
@@ -390,11 +411,14 @@ export default function AdminPage() {
       if (filtro === "incompletos") return incompleto(p);
       if (filtro === "destaque") return !!p.destaque;
       if (filtro === "semdestaque") return !p.destaque;
+      if (filtro === "ocultos") return !!p.oculto;
+      if (filtro === "visiveis") return !p.oculto;
       return true;
     })
     .filter((p) => !filtroCategoria || p.categoria === filtroCategoria)
     .sort(ordenarTabela);
   const totalIncompletos = produtos.filter(incompleto).length;
+  const totalOcultos = produtos.filter((p) => p.oculto).length;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
@@ -522,7 +546,21 @@ export default function AdminPage() {
                 <p className="text-sm font-semibold text-cc-ink">
                   {selecionados.length} produto(s) selecionado(s)
                 </p>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => aplicarEmLote({ oculto: true })}
+                    disabled={aplicandoLote}
+                    className="rounded-lg border border-cc-line bg-white px-3 py-1.5 text-xs font-medium text-cc-ink hover:bg-cc-cream disabled:opacity-50"
+                  >
+                    Tirar do ar
+                  </button>
+                  <button
+                    onClick={() => aplicarEmLote({ oculto: false })}
+                    disabled={aplicandoLote}
+                    className="rounded-lg border border-cc-line bg-white px-3 py-1.5 text-xs font-medium text-cc-ink hover:bg-cc-cream disabled:opacity-50"
+                  >
+                    Pôr no ar
+                  </button>
                   <button
                     onClick={() => setSelecionados([])}
                     className="rounded-lg border border-cc-line bg-white px-3 py-1.5 text-xs font-medium text-cc-ink hover:bg-cc-cream"
@@ -615,6 +653,10 @@ export default function AdminPage() {
                 className="rounded-xl border border-cc-line px-3 py-2.5 text-sm outline-none focus:border-cc-yellow"
               >
                 <option value="todos">Todos</option>
+                <option value="visiveis">No ar (visíveis)</option>
+                <option value="ocultos">
+                  Ocultos{totalOcultos > 0 ? ` (${totalOcultos})` : ""}
+                </option>
                 <option value="destaque">Em destaque</option>
                 <option value="semdestaque">Sem destaque</option>
                 <option value="incompletos">
@@ -676,7 +718,10 @@ export default function AdminPage() {
                   </thead>
                   <tbody>
                     {produtosExibidos.map((p) => (
-                      <tr key={p.id} className="border-b border-cc-line last:border-0">
+                      <tr
+                        key={p.id}
+                        className={`border-b border-cc-line last:border-0 ${p.oculto ? "opacity-55" : ""}`}
+                      >
                         <td className="px-4 py-3">
                           <input
                             type="checkbox"
@@ -701,6 +746,7 @@ export default function AdminPage() {
                                   ? nomeCategoria(p.categoria, categorias)
                                   : PLATAFORMAS.find((x) => x.id === p.plataforma)?.nome || p.plataforma}
                                 {p.destaque ? " · ⭐ destaque" : ""}
+                                {p.oculto ? " · 🚫 fora do ar" : ""}
                               </p>
                             </div>
                           </div>
@@ -726,6 +772,22 @@ export default function AdminPage() {
                         <td className="hidden px-4 py-3 text-cc-muted sm:table-cell">{p.cliques || 0}</td>
                         <td className="px-4 py-3">
                           <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => toggleOculto(p)}
+                              title={
+                                p.oculto
+                                  ? "Pôr no ar (mostrar no site)"
+                                  : "Tirar do ar (esconder do site)"
+                              }
+                              aria-label={p.oculto ? "Pôr no ar" : "Tirar do ar"}
+                              className={`rounded-lg border px-2.5 py-1.5 text-xs font-bold transition ${
+                                p.oculto
+                                  ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
+                                  : "border-cc-line text-cc-muted hover:bg-cc-cream"
+                              }`}
+                            >
+                              {p.oculto ? "🚫" : "👁"}
+                            </button>
                             <button
                               onClick={() => toggleDestaque(p)}
                               title={

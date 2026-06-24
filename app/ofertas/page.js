@@ -14,6 +14,7 @@ async function getInicial() {
   const { data } = await supabase
     .from("produtos")
     .select("*")
+    .neq("oculto", true)
     .eq("destaque", true)
     .order("criado_em", { ascending: false })
     .range(0, POR_PAGINA - 1);

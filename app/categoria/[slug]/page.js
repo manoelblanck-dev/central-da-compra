@@ -24,6 +24,7 @@ async function getInicial(slug) {
   const { data } = await supabase
     .from("produtos")
     .select("*")
+    .neq("oculto", true)
     .eq("categoria", slug)
     .order("criado_em", { ascending: false })
     .range(0, POR_PAGINA - 1);
